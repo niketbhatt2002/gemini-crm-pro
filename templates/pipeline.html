@@ -1,0 +1,181 @@
+{% extends "base.html" %}
+{% block title %}Pipeline{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="page-header-content">
+        <h1 class="page-title">Sales Pipeline</h1>
+        <p class="page-subtitle">Drag and drop deals between stages</p>
+    </div>
+    <div class="page-actions">
+        <button class="btn btn-primary" onclick="openModal('addDealModal')">
+            <span class="material-icons-round">add</span>Add Deal
+        </button>
+    </div>
+</div>
+
+<div class="pipeline-board" id="pipelineBoard"></div>
+
+<!-- Add Deal Modal -->
+<div id="addDealModal" class="modal">
+    <div class="modal-overlay" onclick="closeModal('addDealModal')"></div>
+    <div class="modal-container">
+        <div class="modal-header">
+            <h3>Add Deal</h3>
+            <button class="btn btn-icon btn-ghost" onclick="closeModal('addDealModal')">
+                <span class="material-icons-round">close</span>
+            </button>
+        </div>
+        <div class="modal-body">
+            <form id="addDealForm">
+                <div class="form-group"><label class="form-label">Deal Name *</label><input type="text" name="name" class="form-input" required></div>
+                <div class="form-group"><label class="form-label">Company *</label><input type="text" name="company" class="form-input" required></div>
+                <div class="form-grid">
+                    <div class="form-group"><label class="form-label">Value ($) *</label><input type="number" name="value" class="form-input" required min="0"></div>
+                    <div class="form-group"><label class="form-label">Expected Close</label><input type="date" name="expected_close_date" class="form-input"></div>
+                </div>
+                <div class="form-group"><label class="form-label">Description</label><textarea name="description" class="form-input" rows="2"></textarea></div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-text" onclick="closeModal('addDealModal')">Cancel</button>
+            <button class="btn btn-primary" onclick="saveDeal()">Save</button>
+        </div>
+    </div>
+</div>
+
+<style>
+.pipeline-board { display: flex; gap: var(--spacing-md); overflow-x: auto; padding-bottom: var(--spacing-md); min-height: 500px; }
+.pipeline-column { flex: 0 0 280px; background: var(--surface-container-low); border-radius: var(--radius-md); display: flex; flex-direction: column; }
+.pipeline-column-header { padding: var(--spacing-md); border-bottom: 3px solid; display: flex; justify-content: space-between; align-items: center; }
+.pipeline-column-title { font-weight: 500; font-size: 0.875rem; }
+.pipeline-column-count { background: var(--surface-container); padding: 2px 8px; border-radius: var(--radius-full); font-size: 0.75rem; }
+.pipeline-column-total { font-size: 0.75rem; color: var(--on-surface-variant); margin-top: 2px; }
+.pipeline-column-body { flex: 1; padding: var(--spacing-sm); min-height: 200px; }
+.pipeline-column.drag-over { background: var(--primary-container); }
+.deal-card { background: var(--surface); border-radius: var(--radius-sm); padding: var(--spacing-sm) var(--spacing-md); margin-bottom: var(--spacing-sm); cursor: grab; box-shadow: var(--shadow-sm); transition: all var(--transition-fast); }
+.deal-card:hover { box-shadow: var(--shadow-md); }
+.deal-card.dragging { opacity: 0.5; }
+.deal-card-name { font-weight: 500; margin-bottom: 2px; }
+.deal-card-company { font-size: 0.8125rem; color: var(--on-surface-variant); }
+.deal-card-footer { display: flex; justify-content: space-between; align-items: center; margin-top: var(--spacing-sm); padding-top: var(--spacing-sm); border-top: 1px solid var(--outline-variant); }
+.deal-card-value { font-weight: 500; font-size: 0.875rem; }
+.deal-card-prob { font-size: 0.75rem; color: var(--on-surface-variant); }
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--spacing-md); }
+</style>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const stages = [
+    { id: 'lead', name: 'Lead', color: '#4285f4' },
+    { id: 'qualified', name: 'Qualified', color: '#34a853' },
+    { id: 'proposal', name: 'Proposal', color: '#fbbc04' },
+    { id: 'negotiation', name: 'Negotiation', color: '#ff6d01' },
+    { id: 'closed_won', name: 'Won', color: '#0f9d58' },
+    { id: 'closed_lost', name: 'Lost', color: '#ea4335' }
+];
+let allDeals = [];
+
+document.addEventListener('DOMContentLoaded', loadDeals);
+
+async function loadDeals() {
+    try {
+        const res = await fetch('/api/deals');
+        const data = await res.json();
+        allDeals = data.deals;
+        renderPipeline();
+    } catch (e) { showToast('Failed to load deals', 'error'); }
+}
+
+function renderPipeline() {
+    const board = document.getElementById('pipelineBoard');
+    board.innerHTML = stages.map(stage => {
+        const stageDeals = allDeals.filter(d => d.stage === stage.id);
+        const total = stageDeals.reduce((sum, d) => sum + (d.value || 0), 0);
+        return `
+            <div class="pipeline-column" data-stage="${stage.id}" ondragover="onDragOver(event)" ondrop="onDrop(event)" ondragleave="onDragLeave(event)">
+                <div class="pipeline-column-header" style="border-color:${stage.color}">
+                    <div>
+                        <div class="pipeline-column-title">${stage.name}</div>
+                        <div class="pipeline-column-total">${formatCurrency(total)}</div>
+                    </div>
+                    <span class="pipeline-column-count">${stageDeals.length}</span>
+                </div>
+                <div class="pipeline-column-body">
+                    ${stageDeals.map(deal => `
+                        <div class="deal-card" draggable="true" data-id="${deal.id}" ondragstart="onDragStart(event)" ondragend="onDragEnd(event)">
+                            <div class="deal-card-name">${deal.name}</div>
+                            <div class="deal-card-company">${deal.company}</div>
+                            <div class="deal-card-footer">
+                                <span class="deal-card-value">${formatCurrency(deal.value)}</span>
+                                <span class="deal-card-prob">${deal.probability}%</span>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+let draggedId = null;
+
+function onDragStart(e) {
+    draggedId = e.target.dataset.id;
+    e.target.classList.add('dragging');
+}
+
+function onDragEnd(e) {
+    e.target.classList.remove('dragging');
+    document.querySelectorAll('.pipeline-column').forEach(col => col.classList.remove('drag-over'));
+}
+
+function onDragOver(e) {
+    e.preventDefault();
+    e.currentTarget.classList.add('drag-over');
+}
+
+function onDragLeave(e) {
+    e.currentTarget.classList.remove('drag-over');
+}
+
+async function onDrop(e) {
+    e.preventDefault();
+    const column = e.currentTarget;
+    column.classList.remove('drag-over');
+    const newStage = column.dataset.stage;
+    
+    if (draggedId && newStage) {
+        try {
+            await fetch(`/api/deals/${draggedId}/stage`, {
+                method: 'PUT',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ stage: newStage })
+            });
+            loadDeals();
+        } catch (e) { showToast('Failed to update deal', 'error'); }
+    }
+    draggedId = null;
+}
+
+function openModal(id) { document.getElementById(id).classList.add('active'); }
+function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+
+async function saveDeal() {
+    const form = document.getElementById('addDealForm');
+    const data = Object.fromEntries(new FormData(form));
+    data.value = parseInt(data.value) || 0;
+    data.stage = 'lead';
+    data.probability = 10;
+    
+    try {
+        await fetch('/api/deals', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(data) });
+        showToast('Deal created!', 'success');
+        closeModal('addDealModal');
+        form.reset();
+        loadDeals();
+    } catch (e) { showToast('Failed to create deal', 'error'); }
+}
+</script>
+{% endblock %}

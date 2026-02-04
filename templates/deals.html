@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+{% block title %}Deals{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="page-header-content">
+        <h1 class="page-title">Deals</h1>
+        <p class="page-subtitle">Track and manage your sales opportunities</p>
+    </div>
+    <div class="page-actions">
+        <a href="/pipeline" class="btn btn-secondary"><span class="material-icons-round">view_kanban</span>Pipeline View</a>
+        <button class="btn btn-primary" onclick="window.location='/pipeline'"><span class="material-icons-round">add</span>Add Deal</button>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body no-padding">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Deal</th>
+                    <th>Value</th>
+                    <th>Stage</th>
+                    <th>Probability</th>
+                    <th>Expected Close</th>
+                    <th>AI Prediction</th>
+                </tr>
+            </thead>
+            <tbody id="dealsTable"></tbody>
+        </table>
+    </div>
+</div>
+
+<!-- AI Prediction Modal -->
+<div id="predictionModal" class="modal">
+    <div class="modal-overlay" onclick="closeModal('predictionModal')"></div>
+    <div class="modal-container">
+        <div class="modal-header">
+            <h3><span class="material-icons-round">auto_awesome</span> AI Deal Prediction</h3>
+            <button class="btn btn-icon btn-ghost" onclick="closeModal('predictionModal')"><span class="material-icons-round">close</span></button>
+        </div>
+        <div class="modal-body" id="predictionBody"></div>
+    </div>
+</div>
+
+<style>
+.prob-cell { display: flex; align-items: center; gap: var(--spacing-sm); }
+.prob-bar { width: 60px; height: 6px; background: var(--surface-container); border-radius: 3px; overflow: hidden; }
+.prob-fill { height: 100%; border-radius: 3px; }
+.stage-badge { display: inline-flex; padding: 4px 12px; border-radius: var(--radius-full); font-size: 0.75rem; font-weight: 500; }
+.pred-circle { width: 100px; height: 100px; border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; margin: 0 auto var(--spacing-md); }
+.pred-circle.high { background: var(--success-container); color: var(--success); }
+.pred-circle.medium { background: var(--warning-container); color: #e37400; }
+.pred-circle.low { background: var(--error-container); color: var(--error); }
+.pred-value { font-size: 1.75rem; font-weight: 600; }
+.pred-section { margin-top: var(--spacing-md); background: var(--surface-container-low); padding: var(--spacing-md); border-radius: var(--radius-sm); }
+.pred-section h5 { font-size: 0.8125rem; margin-bottom: var(--spacing-xs); }
+.pred-section ul { margin: 0; padding-left: var(--spacing-lg); font-size: 0.875rem; }
+</style>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let allDeals = [];
+
+document.addEventListener('DOMContentLoaded', loadDeals);
+
+async function loadDeals() {
+    try {
+        const res = await fetch('/api/deals');
+        const data = await res.json();
+        allDeals = data.deals;
+        renderDeals();
+    } catch (e) { showToast('Failed to load deals', 'error'); }
+}
+
+function renderDeals() {
+    const tbody = document.getElementById('dealsTable');
+    if (!allDeals.length) {
+        tbody.innerHTML = '<tr><td colspan="6" class="empty-cell">No deals yet</td></tr>';
+        return;
+    }
+    tbody.innerHTML = allDeals.map(d => `
+        <tr>
+            <td>
+                <div class="deal-name">${d.name}</div>
+                <div class="deal-company">${d.company}</div>
+            </td>
+            <td class="deal-value">${formatCurrency(d.value)}</td>
+            <td><span class="stage-badge" style="background:${d.stage_color}20;color:${d.stage_color}">${formatStage(d.stage)}</span></td>
+            <td>
+                <div class="prob-cell">
+                    <div class="prob-bar"><div class="prob-fill" style="width:${d.probability}%;background:${d.stage_color}"></div></div>
+                    <span>${d.probability}%</span>
+                </div>
+            </td>
+            <td>${d.expected_close_date ? formatDate(d.expected_close_date) : '-'}</td>
+            <td><button class="btn btn-text btn-sm" onclick="predictDeal('${d.id}')"><span class="material-icons-round">auto_awesome</span>Predict</button></td>
+        </tr>
+    `).join('');
+}
+
+function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+
+async function predictDeal(id) {
+    showLoading();
+    try {
+        const res = await fetch('/api/ai/predict-deal', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ deal_id: id })
+        });
+        const data = await res.json();
+        hideLoading();
+        
+        if (data.error) { showToast(data.error, 'error'); return; }
+        
+        const p = data.prediction;
+        const prob = p.win_probability || 50;
+        const cls = prob >= 70 ? 'high' : prob >= 40 ? 'medium' : 'low';
+        
+        document.getElementById('predictionBody').innerHTML = `
+            <div class="pred-circle ${cls}">
+                <span class="pred-value">${prob}%</span>
+                <span style="font-size:0.6875rem;text-transform:uppercase">Win Prob</span>
+            </div>
+            <p style="text-align:center;margin-bottom:var(--spacing-md)">${p.summary || ''}</p>
+            ${p.risk_factors?.length ? `<div class="pred-section"><h5>⚠️ Risk Factors</h5><ul>${p.risk_factors.map(r=>'<li>'+r+'</li>').join('')}</ul></div>` : ''}
+            ${p.key_actions_to_win?.length ? `<div class="pred-section"><h5>🎯 Actions to Win</h5><ul>${p.key_actions_to_win.map(a=>'<li>'+a+'</li>').join('')}</ul></div>` : ''}
+        `;
+        document.getElementById('predictionModal').classList.add('active');
+    } catch (e) {
+        hideLoading();
+        showToast('Failed to predict', 'error');
+    }
+}
+</script>
+{% endblock %}

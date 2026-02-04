@@ -1,0 +1,381 @@
+{% extends "base.html" %}
+{% block title %}Leads{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="page-header-content">
+        <h1 class="page-title">Leads</h1>
+        <p class="page-subtitle">Manage and qualify your sales leads</p>
+    </div>
+    <div class="page-actions">
+        <button class="btn btn-primary" onclick="openAddLeadModal()">
+            <span class="material-icons-round">add</span>
+            Add Lead
+        </button>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="filters-bar">
+    <div class="filter-tabs">
+        <button class="filter-tab active" data-status="">All</button>
+        <button class="filter-tab" data-status="New">New</button>
+        <button class="filter-tab" data-status="Contacted">Contacted</button>
+        <button class="filter-tab" data-status="Qualified">Qualified</button>
+    </div>
+    <input type="text" id="leadSearch" class="filter-search" placeholder="Search leads...">
+</div>
+
+<!-- Leads Grid -->
+<div class="leads-grid" id="leadsGrid"></div>
+
+<!-- Add Lead Modal -->
+<div id="addLeadModal" class="modal">
+    <div class="modal-overlay" onclick="closeModal('addLeadModal')"></div>
+    <div class="modal-container">
+        <div class="modal-header">
+            <h3>Add New Lead</h3>
+            <button class="btn btn-icon btn-ghost" onclick="closeModal('addLeadModal')">
+                <span class="material-icons-round">close</span>
+            </button>
+        </div>
+        <div class="modal-body">
+            <form id="addLeadForm">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label">Name *</label>
+                        <input type="text" name="name" class="form-input" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Email *</label>
+                        <input type="email" name="email" class="form-input" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Company</label>
+                        <input type="text" name="company" class="form-input">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Title</label>
+                        <input type="text" name="title" class="form-input">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Phone</label>
+                        <input type="tel" name="phone" class="form-input">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Source</label>
+                        <select name="source" class="form-input">
+                            <option value="Website">Website</option>
+                            <option value="Referral">Referral</option>
+                            <option value="LinkedIn">LinkedIn</option>
+                            <option value="Google Ads">Google Ads</option>
+                            <option value="Trade Show">Trade Show</option>
+                        </select>
+                    </div>
+                    <div class="form-group full-width">
+                        <label class="form-label">Estimated Value ($)</label>
+                        <input type="number" name="estimated_value" class="form-input" min="0">
+                    </div>
+                    <div class="form-group full-width">
+                        <label class="form-label">Notes</label>
+                        <textarea name="notes" class="form-input form-textarea" rows="3"></textarea>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-text" onclick="closeModal('addLeadModal')">Cancel</button>
+            <button class="btn btn-primary" onclick="saveLead()">Save Lead</button>
+        </div>
+    </div>
+</div>
+
+<!-- Lead Detail Modal -->
+<div id="leadDetailModal" class="modal">
+    <div class="modal-overlay" onclick="closeModal('leadDetailModal')"></div>
+    <div class="modal-container modal-lg">
+        <div class="modal-header">
+            <h3 id="leadDetailTitle">Lead Details</h3>
+            <button class="btn btn-icon btn-ghost" onclick="closeModal('leadDetailModal')">
+                <span class="material-icons-round">close</span>
+            </button>
+        </div>
+        <div class="modal-body" id="leadDetailBody"></div>
+    </div>
+</div>
+
+<!-- AI Score Modal -->
+<div id="aiScoreModal" class="modal">
+    <div class="modal-overlay" onclick="closeModal('aiScoreModal')"></div>
+    <div class="modal-container">
+        <div class="modal-header">
+            <h3><span class="material-icons-round">auto_awesome</span> AI Lead Analysis</h3>
+            <button class="btn btn-icon btn-ghost" onclick="closeModal('aiScoreModal')">
+                <span class="material-icons-round">close</span>
+            </button>
+        </div>
+        <div class="modal-body" id="aiScoreBody"></div>
+    </div>
+</div>
+
+<style>
+.filters-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--spacing-md); padding: var(--spacing-sm) var(--spacing-md); background: var(--surface); border-radius: var(--radius-md); border: 1px solid var(--outline-variant); }
+.filter-tabs { display: flex; gap: var(--spacing-xs); }
+.filter-tab { padding: var(--spacing-xs) var(--spacing-md); border: none; background: none; border-radius: var(--radius-full); font-size: 0.875rem; font-weight: 500; color: var(--on-surface-variant); cursor: pointer; }
+.filter-tab:hover { background: var(--surface-container-low); }
+.filter-tab.active { background: var(--primary-container); color: var(--on-primary-container); }
+.filter-search { padding: var(--spacing-sm) var(--spacing-md); border: 1px solid var(--outline); border-radius: var(--radius-full); font-size: 0.875rem; width: 250px; }
+.leads-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: var(--spacing-md); }
+.lead-card { background: var(--surface); border: 1px solid var(--outline-variant); border-radius: var(--radius-md); padding: var(--spacing-md); cursor: pointer; transition: all var(--transition-fast); }
+.lead-card:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); }
+.lead-card-header { display: flex; gap: var(--spacing-md); margin-bottom: var(--spacing-md); }
+.lead-card-info { flex: 1; }
+.lead-card-name { font-weight: 500; margin-bottom: 2px; }
+.lead-card-company { font-size: 0.875rem; color: var(--on-surface-variant); }
+.lead-card-meta { display: flex; gap: var(--spacing-md); padding-top: var(--spacing-sm); border-top: 1px solid var(--outline-variant); margin-top: var(--spacing-sm); }
+.lead-meta-item { text-align: center; flex: 1; }
+.lead-meta-value { font-weight: 500; font-size: 0.875rem; }
+.lead-meta-label { font-size: 0.6875rem; color: var(--on-surface-variant); text-transform: uppercase; }
+.lead-card-footer { display: flex; justify-content: space-between; align-items: center; margin-top: var(--spacing-md); }
+.status-pill { padding: 2px 10px; border-radius: var(--radius-full); font-size: 0.6875rem; font-weight: 600; text-transform: uppercase; }
+.status-pill.new { background: var(--info-container); color: var(--google-blue); }
+.status-pill.contacted { background: var(--warning-container); color: #e37400; }
+.status-pill.qualified { background: var(--success-container); color: var(--success); }
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--spacing-md); }
+.form-group.full-width { grid-column: span 2; }
+.form-textarea { height: auto; padding: var(--spacing-sm) var(--spacing-md); resize: vertical; min-height: 80px; }
+.modal-lg { max-width: 700px; }
+.lead-detail-header { display: flex; gap: var(--spacing-lg); padding-bottom: var(--spacing-md); border-bottom: 1px solid var(--outline-variant); margin-bottom: var(--spacing-md); }
+.lead-detail-avatar { width: 72px; height: 72px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: 500; color: white; }
+.lead-detail-info h2 { font-family: var(--font-family); font-weight: 500; margin-bottom: var(--spacing-xs); }
+.lead-detail-info p { color: var(--on-surface-variant); font-size: 0.875rem; margin-bottom: 2px; }
+.lead-detail-actions { display: flex; gap: var(--spacing-sm); margin-top: var(--spacing-md); }
+.lead-detail-section { margin-top: var(--spacing-lg); }
+.lead-detail-section h4 { font-size: 0.875rem; font-weight: 500; color: var(--on-surface-variant); margin-bottom: var(--spacing-sm); text-transform: uppercase; letter-spacing: 0.5px; }
+.ai-result { background: linear-gradient(135deg, rgba(66,133,244,0.1), rgba(147,52,230,0.1)); border-radius: var(--radius-md); padding: var(--spacing-md); }
+.ai-result-header { display: flex; align-items: center; gap: var(--spacing-sm); margin-bottom: var(--spacing-md); font-weight: 500; }
+.ai-score-circle { width: 80px; height: 80px; border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; margin: 0 auto var(--spacing-md); }
+.ai-score-circle.high { background: var(--success-container); color: var(--success); }
+.ai-score-circle.medium { background: var(--warning-container); color: #e37400; }
+.ai-score-circle.low { background: var(--error-container); color: var(--error); }
+.ai-score-value { font-size: 1.5rem; font-weight: 600; }
+.ai-score-label { font-size: 0.6875rem; text-transform: uppercase; }
+.ai-section { margin-top: var(--spacing-md); }
+.ai-section h5 { font-size: 0.8125rem; font-weight: 500; margin-bottom: var(--spacing-xs); }
+.ai-section ul { margin: 0; padding-left: var(--spacing-lg); font-size: 0.875rem; }
+.ai-section li { margin-bottom: var(--spacing-xs); }
+</style>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let allLeads = [];
+let currentLead = null;
+
+document.addEventListener('DOMContentLoaded', () => {
+    loadLeads();
+    document.querySelectorAll('.filter-tab').forEach(tab => {
+        tab.addEventListener('click', function() {
+            document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+            this.classList.add('active');
+            renderLeads(this.dataset.status);
+        });
+    });
+    document.getElementById('leadSearch').addEventListener('input', () => renderLeads());
+    
+    // Check URL for lead ID
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('id')) setTimeout(() => openLeadDetail(params.get('id')), 300);
+});
+
+async function loadLeads() {
+    try {
+        const res = await fetch('/api/leads');
+        const data = await res.json();
+        allLeads = data.leads;
+        renderLeads();
+    } catch (e) { showToast('Failed to load leads', 'error'); }
+}
+
+function renderLeads(statusFilter = '') {
+    const grid = document.getElementById('leadsGrid');
+    const search = document.getElementById('leadSearch').value.toLowerCase();
+    let leads = allLeads;
+    
+    if (statusFilter) leads = leads.filter(l => l.status === statusFilter);
+    if (search) leads = leads.filter(l => l.name.toLowerCase().includes(search) || (l.company||'').toLowerCase().includes(search));
+    
+    if (!leads.length) {
+        grid.innerHTML = '<div class="empty-state"><span class="material-icons-outlined">person_search</span><p>No leads found</p></div>';
+        return;
+    }
+    
+    grid.innerHTML = leads.map(lead => {
+        const scoreClass = lead.score >= 70 ? 'high' : lead.score >= 40 ? 'medium' : 'low';
+        return `
+        <div class="lead-card" onclick="openLeadDetail('${lead.id}')">
+            <div class="lead-card-header">
+                <div class="avatar" style="background:${getAvatarColor(lead.name)}">${lead.initials}</div>
+                <div class="lead-card-info">
+                    <div class="lead-card-name">${lead.name}</div>
+                    <div class="lead-card-company">${lead.company || 'No company'} ${lead.title ? '• '+lead.title : ''}</div>
+                </div>
+                <div class="score-badge ${scoreClass}">${lead.score}</div>
+            </div>
+            <div class="lead-card-meta">
+                <div class="lead-meta-item"><div class="lead-meta-value">${formatCurrency(lead.estimated_value||0)}</div><div class="lead-meta-label">Value</div></div>
+                <div class="lead-meta-item"><div class="lead-meta-value">${lead.email_opens||0}</div><div class="lead-meta-label">Opens</div></div>
+                <div class="lead-meta-item"><div class="lead-meta-value">${lead.website_visits||0}</div><div class="lead-meta-label">Visits</div></div>
+            </div>
+            <div class="lead-card-footer">
+                <span class="status-pill ${lead.status.toLowerCase()}">${lead.status}</span>
+                <button class="btn btn-text btn-sm" onclick="scoreLead('${lead.id}',event)"><span class="material-icons-round">auto_awesome</span>AI Score</button>
+            </div>
+        </div>`;
+    }).join('');
+}
+
+function openAddLeadModal() { document.getElementById('addLeadModal').classList.add('active'); }
+function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+
+async function saveLead() {
+    const form = document.getElementById('addLeadForm');
+    const formData = new FormData(form);
+    const data = Object.fromEntries(formData);
+    data.estimated_value = parseInt(data.estimated_value) || 0;
+    
+    try {
+        const res = await fetch('/api/leads', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(data)
+        });
+        if (res.ok) {
+            showToast('Lead created!', 'success');
+            closeModal('addLeadModal');
+            form.reset();
+            loadLeads();
+        }
+    } catch (e) { showToast('Failed to create lead', 'error'); }
+}
+
+function openLeadDetail(id) {
+    currentLead = allLeads.find(l => l.id === id);
+    if (!currentLead) return;
+    
+    const scoreClass = currentLead.score >= 70 ? 'high' : currentLead.score >= 40 ? 'medium' : 'low';
+    document.getElementById('leadDetailTitle').textContent = currentLead.name;
+    document.getElementById('leadDetailBody').innerHTML = `
+        <div class="lead-detail-header">
+            <div class="lead-detail-avatar" style="background:${getAvatarColor(currentLead.name)}">${currentLead.initials}</div>
+            <div class="lead-detail-info">
+                <h2>${currentLead.name}</h2>
+                <p>${currentLead.title || ''} ${currentLead.company ? 'at '+currentLead.company : ''}</p>
+                <p>${currentLead.email} ${currentLead.phone ? '• '+currentLead.phone : ''}</p>
+            </div>
+            <div style="margin-left:auto;text-align:center">
+                <div class="score-badge ${scoreClass}" style="width:56px;height:56px;border-radius:50%;font-size:1.25rem">${currentLead.score}</div>
+                <div style="font-size:0.75rem;color:var(--on-surface-variant);margin-top:4px">Score</div>
+            </div>
+        </div>
+        <div class="lead-detail-actions">
+            <button class="btn btn-primary" onclick="scoreLead('${currentLead.id}')"><span class="material-icons-round">auto_awesome</span>AI Analysis</button>
+            <button class="btn btn-secondary" onclick="generateEmail('${currentLead.id}')"><span class="material-icons-round">email</span>Generate Email</button>
+        </div>
+        <div class="lead-detail-section">
+            <h4>Details</h4>
+            <p><strong>Source:</strong> ${currentLead.source}</p>
+            <p><strong>Status:</strong> ${currentLead.status}</p>
+            <p><strong>Estimated Value:</strong> ${formatCurrency(currentLead.estimated_value||0)}</p>
+            <p><strong>Created:</strong> ${new Date(currentLead.created_at).toLocaleDateString()}</p>
+        </div>
+        ${currentLead.notes ? `<div class="lead-detail-section"><h4>Notes</h4><p>${currentLead.notes}</p></div>` : ''}
+        <div id="leadAIResults"></div>
+    `;
+    document.getElementById('leadDetailModal').classList.add('active');
+}
+
+async function scoreLead(id, event) {
+    if (event) event.stopPropagation();
+    showLoading();
+    
+    try {
+        const res = await fetch('/api/ai/score-lead', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({lead_id: id})
+        });
+        const data = await res.json();
+        hideLoading();
+        
+        if (data.error) {
+            showToast(data.error, 'error');
+            return;
+        }
+        
+        const analysis = data.analysis;
+        const scoreClass = (analysis.score||50) >= 70 ? 'high' : (analysis.score||50) >= 40 ? 'medium' : 'low';
+        
+        document.getElementById('aiScoreBody').innerHTML = `
+            <div class="ai-result">
+                <div class="ai-score-circle ${scoreClass}">
+                    <span class="ai-score-value">${analysis.score || 'N/A'}</span>
+                    <span class="ai-score-label">Score</span>
+                </div>
+                <p style="text-align:center;margin-bottom:var(--spacing-md)">${analysis.summary || ''}</p>
+                ${analysis.strengths?.length ? `<div class="ai-section"><h5>✅ Strengths</h5><ul>${analysis.strengths.map(s=>'<li>'+s+'</li>').join('')}</ul></div>` : ''}
+                ${analysis.weaknesses?.length ? `<div class="ai-section"><h5>⚠️ Weaknesses</h5><ul>${analysis.weaknesses.map(s=>'<li>'+s+'</li>').join('')}</ul></div>` : ''}
+                ${analysis.recommended_actions?.length ? `<div class="ai-section"><h5>🎯 Recommended Actions</h5><ul>${analysis.recommended_actions.map(s=>'<li>'+s+'</li>').join('')}</ul></div>` : ''}
+                ${analysis.ideal_next_step ? `<div class="ai-section"><h5>👉 Next Step</h5><p>${analysis.ideal_next_step}</p></div>` : ''}
+            </div>
+        `;
+        document.getElementById('aiScoreModal').classList.add('active');
+        
+    } catch (e) {
+        hideLoading();
+        showToast('Failed to analyze lead', 'error');
+    }
+}
+
+async function generateEmail(id) {
+    showLoading();
+    try {
+        const res = await fetch('/api/ai/generate-email', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({lead_id: id, type: 'follow_up'})
+        });
+        const data = await res.json();
+        hideLoading();
+        
+        if (data.email) {
+            const resultsDiv = document.getElementById('leadAIResults');
+            resultsDiv.innerHTML = `
+                <div class="lead-detail-section">
+                    <h4><span class="material-icons-round" style="font-size:16px;vertical-align:middle">auto_awesome</span> AI Generated Email</h4>
+                    <div class="ai-result">
+                        <p><strong>Subject:</strong> ${data.email.subject}</p>
+                        <hr style="margin:var(--spacing-sm) 0;border:none;border-top:1px solid var(--outline-variant)">
+                        <div style="white-space:pre-wrap;font-size:0.875rem">${data.email.body}</div>
+                        <button class="btn btn-secondary btn-sm" style="margin-top:var(--spacing-md)" onclick="copyEmail()">
+                            <span class="material-icons-round">content_copy</span>Copy
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+    } catch (e) {
+        hideLoading();
+        showToast('Failed to generate email', 'error');
+    }
+}
+
+function copyEmail() {
+    const emailBody = document.querySelector('#leadAIResults .ai-result div[style*="pre-wrap"]');
+    if (emailBody) {
+        navigator.clipboard.writeText(emailBody.textContent);
+        showToast('Email copied!', 'success');
+    }
+}
+</script>
+{% endblock %}

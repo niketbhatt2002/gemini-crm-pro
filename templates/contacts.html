@@ -1,0 +1,136 @@
+{% extends "base.html" %}
+{% block title %}Contacts{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="page-header-content">
+        <h1 class="page-title">Contacts</h1>
+        <p class="page-subtitle">Manage your customer relationships</p>
+    </div>
+    <div class="page-actions">
+        <button class="btn btn-primary" onclick="openModal('addContactModal')">
+            <span class="material-icons-round">add</span>Add Contact
+        </button>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body no-padding">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Contact</th>
+                    <th>Company</th>
+                    <th>Email</th>
+                    <th>Phone</th>
+                    <th>Location</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody id="contactsTable"></tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Add Contact Modal -->
+<div id="addContactModal" class="modal">
+    <div class="modal-overlay" onclick="closeModal('addContactModal')"></div>
+    <div class="modal-container">
+        <div class="modal-header">
+            <h3>Add Contact</h3>
+            <button class="btn btn-icon btn-ghost" onclick="closeModal('addContactModal')">
+                <span class="material-icons-round">close</span>
+            </button>
+        </div>
+        <div class="modal-body">
+            <form id="addContactForm">
+                <div class="form-grid">
+                    <div class="form-group"><label class="form-label">First Name *</label><input type="text" name="first_name" class="form-input" required></div>
+                    <div class="form-group"><label class="form-label">Last Name *</label><input type="text" name="last_name" class="form-input" required></div>
+                    <div class="form-group"><label class="form-label">Email *</label><input type="email" name="email" class="form-input" required></div>
+                    <div class="form-group"><label class="form-label">Phone</label><input type="tel" name="phone" class="form-input"></div>
+                    <div class="form-group"><label class="form-label">Company</label><input type="text" name="company" class="form-input"></div>
+                    <div class="form-group"><label class="form-label">Title</label><input type="text" name="title" class="form-input"></div>
+                    <div class="form-group"><label class="form-label">City</label><input type="text" name="city" class="form-input"></div>
+                    <div class="form-group"><label class="form-label">Country</label><input type="text" name="country" class="form-input"></div>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-text" onclick="closeModal('addContactModal')">Cancel</button>
+            <button class="btn btn-primary" onclick="saveContact()">Save</button>
+        </div>
+    </div>
+</div>
+
+<style>
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--spacing-md); }
+.contact-cell { display: flex; align-items: center; gap: var(--spacing-sm); }
+.contact-name { font-weight: 500; }
+.contact-title { font-size: 0.8125rem; color: var(--on-surface-variant); }
+</style>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', loadContacts);
+
+async function loadContacts() {
+    try {
+        const res = await fetch('/api/contacts');
+        const data = await res.json();
+        renderContacts(data.contacts);
+    } catch (e) { showToast('Failed to load contacts', 'error'); }
+}
+
+function renderContacts(contacts) {
+    const tbody = document.getElementById('contactsTable');
+    if (!contacts.length) {
+        tbody.innerHTML = '<tr><td colspan="6" class="empty-cell">No contacts yet</td></tr>';
+        return;
+    }
+    tbody.innerHTML = contacts.map(c => `
+        <tr>
+            <td>
+                <div class="contact-cell">
+                    <div class="avatar" style="background:${c.avatar_color}">${c.initials}</div>
+                    <div>
+                        <div class="contact-name">${c.full_name}</div>
+                        <div class="contact-title">${c.title || ''}</div>
+                    </div>
+                </div>
+            </td>
+            <td>${c.company || '-'}</td>
+            <td>${c.email}</td>
+            <td>${c.phone || '-'}</td>
+            <td>${[c.city, c.country].filter(Boolean).join(', ') || '-'}</td>
+            <td><button class="btn btn-icon btn-ghost" onclick="deleteContact('${c.id}')"><span class="material-icons-outlined">delete</span></button></td>
+        </tr>
+    `).join('');
+}
+
+function openModal(id) { document.getElementById(id).classList.add('active'); }
+function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+
+async function saveContact() {
+    const form = document.getElementById('addContactForm');
+    const data = Object.fromEntries(new FormData(form));
+    try {
+        await fetch('/api/contacts', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(data) });
+        showToast('Contact created!', 'success');
+        closeModal('addContactModal');
+        form.reset();
+        loadContacts();
+    } catch (e) { showToast('Failed to create contact', 'error'); }
+}
+
+async function deleteContact(id) {
+    if (!confirm('Delete this contact?')) return;
+    try {
+        await fetch(`/api/contacts/${id}`, { method: 'DELETE' });
+        showToast('Contact deleted', 'success');
+        loadContacts();
+    } catch (e) { showToast('Failed to delete', 'error'); }
+}
+</script>
+{% endblock %}

@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}GeminiCRM{% endblock %} - AI-Powered Sales Intelligence</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Google+Sans+Text:wght@400;500&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    
+    <!-- Material Icons -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons|Material+Icons+Outlined|Material+Icons+Round" rel="stylesheet">
+    
+    <!-- App Styles -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    
+    {% block head %}{% endblock %}
+</head>
+<body>
+    <!-- API Key Modal -->
+    <div id="apiKeyModal" class="modal">
+        <div class="modal-overlay"></div>
+        <div class="modal-container modal-sm">
+            <div class="modal-header centered">
+                <div class="gemini-logo">
+                    <svg viewBox="0 0 24 24" fill="none">
+                        <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" stroke-width="1.5"/>
+                        <path d="M2 17L12 22L22 17" stroke="currentColor" stroke-width="1.5"/>
+                        <path d="M2 12L12 17L22 12" stroke="currentColor" stroke-width="1.5"/>
+                    </svg>
+                </div>
+                <h2>Welcome to GeminiCRM</h2>
+                <p>Connect your Gemini API to unlock AI-powered features</p>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Gemini API Key</label>
+                    <input type="password" id="apiKeyInput" class="form-input" placeholder="AIza...">
+                    <p class="form-hint">Get your API key from <a href="https://aistudio.google.com/apikey" target="_blank">Google AI Studio</a></p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-text" onclick="hideApiModal()">Skip for now</button>
+                <button class="btn btn-primary" onclick="saveApiKey()">
+                    <span class="material-icons-round">check</span>
+                    Connect
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main App Container -->
+    <div class="app">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <div class="logo-icon">
+                        <svg viewBox="0 0 24 24" fill="none">
+                            <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" stroke-width="1.5"/>
+                            <path d="M2 17L12 22L22 17" stroke="currentColor" stroke-width="1.5"/>
+                            <path d="M2 12L12 17L22 12" stroke="currentColor" stroke-width="1.5"/>
+                        </svg>
+                    </div>
+                    <span class="logo-text">Gemini<span class="accent">CRM</span></span>
+                </div>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <a href="/" class="nav-item {% if page == 'dashboard' %}active{% endif %}">
+                    <span class="material-icons-outlined">dashboard</span>
+                    <span class="nav-label">Dashboard</span>
+                </a>
+                <a href="/leads" class="nav-item {% if page == 'leads' %}active{% endif %}">
+                    <span class="material-icons-outlined">person_search</span>
+                    <span class="nav-label">Leads</span>
+                </a>
+                <a href="/contacts" class="nav-item {% if page == 'contacts' %}active{% endif %}">
+                    <span class="material-icons-outlined">contacts</span>
+                    <span class="nav-label">Contacts</span>
+                </a>
+                <a href="/pipeline" class="nav-item {% if page == 'pipeline' %}active{% endif %}">
+                    <span class="material-icons-outlined">view_kanban</span>
+                    <span class="nav-label">Pipeline</span>
+                </a>
+                <a href="/deals" class="nav-item {% if page == 'deals' %}active{% endif %}">
+                    <span class="material-icons-outlined">handshake</span>
+                    <span class="nav-label">Deals</span>
+                </a>
+                <a href="/tasks" class="nav-item {% if page == 'tasks' %}active{% endif %}">
+                    <span class="material-icons-outlined">task_alt</span>
+                    <span class="nav-label">Tasks</span>
+                </a>
+                <a href="/analytics" class="nav-item {% if page == 'analytics' %}active{% endif %}">
+                    <span class="material-icons-outlined">analytics</span>
+                    <span class="nav-label">Analytics</span>
+                </a>
+                
+                <div class="nav-divider"></div>
+                
+                <div class="nav-section-title">AI Tools</div>
+                <button class="nav-item" onclick="openAIChat()">
+                    <span class="material-icons-outlined">auto_awesome</span>
+                    <span class="nav-label">AI Assistant</span>
+                    <span class="badge badge-new">NEW</span>
+                </button>
+            </nav>
+            
+            <div class="sidebar-footer">
+                <div class="api-status" id="apiStatus">
+                    <span class="status-indicator"></span>
+                    <span class="status-text">Checking...</span>
+                </div>
+                <button class="btn btn-icon btn-ghost" onclick="showApiModal()" title="Settings">
+                    <span class="material-icons-outlined">settings</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <!-- Top Header -->
+            <header class="top-header">
+                <button class="btn btn-icon btn-ghost mobile-menu-btn" onclick="toggleSidebar()">
+                    <span class="material-icons-round">menu</span>
+                </button>
+                
+                <div class="search-container">
+                    <span class="material-icons-outlined search-icon">search</span>
+                    <input type="text" id="globalSearch" class="search-input" placeholder="Search contacts, leads, deals...">
+                    <div class="search-results" id="searchResults"></div>
+                </div>
+                
+                <div class="header-actions">
+                    <button class="btn btn-icon btn-ghost" onclick="openAIChat()" title="AI Assistant">
+                        <span class="material-icons-round">auto_awesome</span>
+                    </button>
+                    <button class="btn btn-icon btn-ghost" title="Notifications">
+                        <span class="material-icons-outlined">notifications</span>
+                        <span class="notification-badge">3</span>
+                    </button>
+                    <div class="user-avatar">
+                        <span>JD</span>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Page Content -->
+            <div class="page-content">
+                {% block content %}{% endblock %}
+            </div>
+        </main>
+
+        <!-- AI Chat Panel -->
+        <aside class="ai-chat-panel" id="aiChatPanel">
+            <div class="ai-chat-header">
+                <div class="ai-chat-title">
+                    <span class="material-icons-round">auto_awesome</span>
+                    <span>AI Assistant</span>
+                </div>
+                <button class="btn btn-icon btn-ghost" onclick="closeAIChat()">
+                    <span class="material-icons-round">close</span>
+                </button>
+            </div>
+            <div class="ai-chat-messages" id="aiChatMessages">
+                <div class="ai-message assistant">
+                    <div class="ai-avatar">
+                        <span class="material-icons-round">auto_awesome</span>
+                    </div>
+                    <div class="ai-bubble">
+                        <p>Hi! I'm your AI sales assistant powered by Gemini 3. I can help you with:</p>
+                        <ul>
+                            <li>Scoring and qualifying leads</li>
+                            <li>Writing personalized emails</li>
+                            <li>Analyzing conversations</li>
+                            <li>Predicting deal outcomes</li>
+                            <li>Task recommendations</li>
+                        </ul>
+                        <p>How can I help you today?</p>
+                    </div>
+                </div>
+            </div>
+            <div class="ai-chat-input-container">
+                <input type="text" id="aiChatInput" class="ai-chat-input" placeholder="Ask me anything about your sales...">
+                <button class="btn btn-primary btn-icon" onclick="sendAIMessage()">
+                    <span class="material-icons-round">send</span>
+                </button>
+            </div>
+        </aside>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-spinner">
+            <div class="spinner"></div>
+            <p>AI is thinking...</p>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Scripts -->
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>
