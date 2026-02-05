@@ -9,6 +9,10 @@
         <p class="page-subtitle">AI-powered overview of your sales pipeline</p>
     </div>
     <div class="page-actions">
+        <button class="btn btn-secondary" id="seedDataBtn" onclick="seedSampleData()" style="margin-right: 8px;">
+            <span class="material-icons-round">add_circle</span>
+            Load Demo Data
+        </button>
         <button class="btn btn-primary" id="getAIInsights">
             <span class="material-icons-round">auto_awesome</span>
             Get AI Insights
@@ -157,20 +161,50 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('getAIInsights').addEventListener('click', getAIInsights);
 });
 
+async function seedSampleData() {
+    const btn = document.getElementById('seedDataBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="material-icons-round">hourglass_empty</span> Loading...';
+    
+    try {
+        const res = await fetch('/api/seed-data', { method: 'POST' });
+        const data = await res.json();
+        
+        if (data.success) {
+            showToast('Demo data loaded! Refreshing...', 'success');
+            setTimeout(() => location.reload(), 1000);
+        } else {
+            showToast(data.error || 'Failed to load demo data', 'error');
+            btn.disabled = false;
+            btn.innerHTML = '<span class="material-icons-round">add_circle</span> Load Demo Data';
+        }
+    } catch (e) {
+        showToast('Failed to load demo data', 'error');
+        btn.disabled = false;
+        btn.innerHTML = '<span class="material-icons-round">add_circle</span> Load Demo Data';
+    }
+}
+
 async function loadDashboard() {
     try {
         // Load stats
         const statsRes = await fetch('/api/dashboard/stats');
-        const stats = await statsRes.json();
+        const statsData = await statsRes.json();
+        const stats = statsData.stats || statsData;
         
-        document.getElementById('statLeads').textContent = stats.total_leads;
-        document.getElementById('statPipeline').textContent = formatCurrency(stats.total_pipeline);
-        document.getElementById('statHotLeads').textContent = stats.hot_leads;
-        document.getElementById('statTasks').textContent = stats.pending_tasks;
+        document.getElementById('statLeads').textContent = stats.total_leads || 0;
+        document.getElementById('statPipeline').textContent = formatCurrency(stats.total_pipeline || 0);
+        document.getElementById('statHotLeads').textContent = stats.hot_leads || 0;
+        document.getElementById('statTasks').textContent = stats.open_tasks || 0;
         
         if (stats.overdue_tasks > 0) {
             document.getElementById('statOverdue').textContent = `${stats.overdue_tasks} overdue`;
             document.getElementById('statOverdue').classList.add('badge-danger');
+        }
+        
+        // Hide seed data button if data exists
+        if ((stats.total_leads || 0) > 0 || (stats.total_contacts || 0) > 0) {
+            document.getElementById('seedDataBtn').style.display = 'none';
         }
         
         // Render pipeline mini

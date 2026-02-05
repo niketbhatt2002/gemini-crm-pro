@@ -24,8 +24,8 @@ from services import gemini_service
 app = Flask(__name__)
 app.config.from_object(Config)
 
-# Secret key for sessions
-app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', secrets.token_hex(32))
+# Secret key for sessions - use a stable key for session persistence
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'geminicrm-pro-super-secret-key-2026-hackathon')
 
 # Database configuration - SQLite for local, PostgreSQL for production
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get(
@@ -35,9 +35,12 @@ app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get(
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SQLALCHEMY_ECHO'] = False
 
-# Session configuration
-app.config['SESSION_TYPE'] = 'filesystem'
+# Session configuration - make sessions permanent
+app.config['SESSION_PERMANENT'] = True
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=7)
+app.config['SESSION_COOKIE_SECURE'] = False  # Set to True in production with HTTPS
+app.config['SESSION_COOKIE_HTTPONLY'] = True
+app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
 
 # Configure CORS
 cors_origins = os.environ.get('CORS_ORIGINS', '*').split(',')
@@ -56,7 +59,7 @@ login_manager.login_message_category = 'info'
 
 @login_manager.user_loader
 def load_user(user_id):
-    return User.query.get(user_id)
+    return db.session.get(User, user_id)
 
 
 # ==================== HELPER FUNCTIONS ====================
@@ -122,6 +125,8 @@ def login():
                 flash('Your account has been deactivated. Please contact support.', 'error')
                 return render_template('login.html')
             
+            # Make session permanent
+            session.permanent = True
             login_user(user, remember=remember)
             user.last_login = datetime.utcnow()
             db.session.commit()
@@ -412,6 +417,29 @@ def api_update_current_user():
     log_activity('update', 'user', current_user.id, current_user.full_name)
     
     return jsonify({'success': True, 'user': current_user.to_dict()})
+
+
+# ==================== API: SEED SAMPLE DATA ====================
+
+@app.route('/api/seed-data', methods=['POST'])
+@login_required
+def seed_sample_data():
+    """Seed sample data for demo purposes"""
+    from models.db_models import _create_sample_data
+    
+    # Check if data already exists
+    existing_leads = Lead.query.filter_by(owner_id=current_user.id).count()
+    if existing_leads > 0:
+        return jsonify({'success': False, 'error': 'Sample data already exists'})
+    
+    try:
+        _create_sample_data(current_user.id)
+        return jsonify({
+            'success': True, 
+            'message': 'Sample data created! Refresh the page to see the data.'
+        })
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
 
 
 # ==================== API: DASHBOARD ====================
