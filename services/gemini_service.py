@@ -40,7 +40,7 @@ def _call_gemini(prompt, temperature=0.3, max_tokens=2000):
     
     try:
         response = client.models.generate_content(
-            model="gemini-3-flash-preview",
+            model="gemini-2.0-flash",
             contents=prompt,
             config=types.GenerateContentConfig(
                 temperature=temperature,

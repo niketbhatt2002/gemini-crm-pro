@@ -7,7 +7,7 @@ from flask import Flask, render_template, request, jsonify, redirect, url_for
 from flask_cors import CORS
 from config import Config
 from models.database import (
-    DB, get_all, get_by_id, create, update, delete, search,
+    DB, get_all, get_by_id, create, update, delete, search, init_sample_data,
     Contact, Lead, Deal, Task, Activity
 )
 from services import gemini_service
@@ -15,7 +15,17 @@ from services import gemini_service
 # Initialize Flask app
 app = Flask(__name__)
 app.config.from_object(Config)
-CORS(app)
+
+# Configure CORS
+cors_origins = os.environ.get('CORS_ORIGINS', '*').split(',')
+CORS(app, resources={r"/api/*": {"origins": cors_origins}})
+
+# Initialize database with sample data on first run
+try:
+    if not DB.get('contacts'):
+        init_sample_data()
+except Exception as e:
+    print(f"Warning: Could not initialize sample data: {e}")
 
 # ==================== PAGE ROUTES ====================
 
@@ -53,6 +63,24 @@ def tasks_page():
 def analytics_page():
     """Analytics dashboard"""
     return render_template('analytics.html', page='analytics')
+
+
+# ==================== ERROR HANDLERS ====================
+
+@app.errorhandler(404)
+def not_found(error):
+    """Handle 404 errors"""
+    return jsonify({"error": "Resource not found"}), 404
+
+@app.errorhandler(500)
+def server_error(error):
+    """Handle 500 errors"""
+    return jsonify({"error": "Internal server error"}), 500
+
+@app.errorhandler(400)
+def bad_request(error):
+    """Handle 400 errors"""
+    return jsonify({"error": "Bad request"}), 400
 
 
 # ==================== API: CONFIGURATION ====================

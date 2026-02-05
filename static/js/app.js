@@ -50,10 +50,16 @@ function getAvatarColor(name) {
     return colors[Math.abs(hash) % colors.length];
 }
 
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
 // ==================== Toast Notifications ====================
 
 function showToast(message, type = 'info') {
-    const container = document.getElementById('toastContainer');
+    const container = document.getElementById('toastContainer') || createToastContainer();
     const toast = document.createElement('div');
     toast.className = `toast ${type}`;
     toast.innerHTML = `
@@ -68,24 +74,77 @@ function showToast(message, type = 'info') {
     }, 3000);
 }
 
+function createToastContainer() {
+    const container = document.createElement('div');
+    container.id = 'toastContainer';
+    container.className = 'toast-container';
+    document.body.appendChild(container);
+    return container;
+}
+
 // ==================== Loading Overlay ====================
 
 function showLoading() {
-    document.getElementById('loadingOverlay').classList.add('active');
+    let overlay = document.getElementById('loadingOverlay');
+    if (!overlay) {
+        overlay = document.createElement('div');
+        overlay.id = 'loadingOverlay';
+        overlay.className = 'loading-overlay';
+        overlay.innerHTML = '<div class="spinner"></div>';
+        document.body.appendChild(overlay);
+    }
+    overlay.classList.add('active');
 }
 
 function hideLoading() {
-    document.getElementById('loadingOverlay').classList.remove('active');
+    const overlay = document.getElementById('loadingOverlay');
+    if (overlay) {
+        overlay.classList.remove('active');
+    }
 }
 
 // ==================== Modal Functions ====================
 
 function showApiModal() {
-    document.getElementById('apiKeyModal').classList.add('active');
+    let modal = document.getElementById('apiKeyModal');
+    if (!modal) {
+        createApiModal();
+        modal = document.getElementById('apiKeyModal');
+    }
+    modal.classList.add('active');
 }
 
 function hideApiModal() {
-    document.getElementById('apiKeyModal').classList.remove('active');
+    const modal = document.getElementById('apiKeyModal');
+    if (modal) {
+        modal.classList.remove('active');
+    }
+}
+
+function createApiModal() {
+    const modal = document.createElement('div');
+    modal.id = 'apiKeyModal';
+    modal.className = 'modal';
+    modal.innerHTML = `
+        <div class="modal-backdrop" onclick="hideApiModal()"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Configure Gemini API</h3>
+                <button class="close-btn" onclick="hideApiModal()">
+                    <span class="material-icons-round">close</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>To use AI features, please enter your Google Gemini API key:</p>
+                <input type="password" id="apiKeyInput" class="form-control" placeholder="Enter API key...">
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="hideApiModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="saveApiKey()">Save API Key</button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(modal);
 }
 
 async function saveApiKey() {
@@ -97,6 +156,8 @@ async function saveApiKey() {
         return;
     }
     
+    showLoading();
+    
     try {
         const res = await fetch('/api/config', {
             method: 'POST',
@@ -105,6 +166,7 @@ async function saveApiKey() {
         });
         
         const data = await res.json();
+        hideLoading();
         
         if (data.success) {
             showToast('API key saved successfully!', 'success');
@@ -114,7 +176,9 @@ async function saveApiKey() {
             showToast(data.error || 'Failed to save API key', 'error');
         }
     } catch (error) {
+        hideLoading();
         showToast('Failed to save API key', 'error');
+        console.error('Error:', error);
     }
 }
 
@@ -127,16 +191,19 @@ async function checkApiStatus() {
         
         const statusEl = document.getElementById('apiStatus');
         
-        if (data.configured) {
-            statusEl.classList.add('connected');
-            statusEl.classList.remove('disconnected');
-            statusEl.querySelector('.status-text').textContent = 'Connected';
-        } else {
-            statusEl.classList.add('disconnected');
-            statusEl.classList.remove('connected');
-            statusEl.querySelector('.status-text').textContent = 'Not Connected';
-            // Show modal if not configured
-            showApiModal();
+        if (statusEl) {
+            if (data.configured) {
+                statusEl.classList.add('connected');
+                statusEl.classList.remove('disconnected');
+                const textEl = statusEl.querySelector('.status-text');
+                if (textEl) textEl.textContent = 'Connected';
+            } else {
+                statusEl.classList.add('disconnected');
+                statusEl.classList.remove('connected');
+                const textEl = statusEl.querySelector('.status-text');
+                if (textEl) textEl.textContent = 'Not Connected';
+                showApiModal();
+            }
         }
     } catch (error) {
         console.error('Error checking API status:', error);
@@ -146,17 +213,50 @@ async function checkApiStatus() {
 // ==================== Sidebar ====================
 
 function toggleSidebar() {
-    document.getElementById('sidebar').classList.toggle('active');
+    const sidebar = document.getElementById('sidebar');
+    if (sidebar) {
+        sidebar.classList.toggle('active');
+    }
 }
 
 // ==================== AI Chat ====================
 
 function openAIChat() {
-    document.getElementById('aiChatPanel').classList.add('active');
+    let panel = document.getElementById('aiChatPanel');
+    if (!panel) {
+        createAIChatPanel();
+        panel = document.getElementById('aiChatPanel');
+    }
+    panel.classList.add('active');
 }
 
 function closeAIChat() {
-    document.getElementById('aiChatPanel').classList.remove('active');
+    const panel = document.getElementById('aiChatPanel');
+    if (panel) {
+        panel.classList.remove('active');
+    }
+}
+
+function createAIChatPanel() {
+    const panel = document.createElement('div');
+    panel.id = 'aiChatPanel';
+    panel.className = 'ai-chat-panel';
+    panel.innerHTML = `
+        <div class="ai-chat-header">
+            <h3>AI Assistant</h3>
+            <button onclick="closeAIChat()" class="close-btn">
+                <span class="material-icons-round">close</span>
+            </button>
+        </div>
+        <div id="aiChatMessages" class="ai-chat-messages"></div>
+        <div class="ai-chat-footer">
+            <input type="text" id="aiChatInput" class="form-control" placeholder="Ask me anything...">
+            <button onclick="sendAIMessage()" class="btn-icon">
+                <span class="material-icons-round">send</span>
+            </button>
+        </div>
+    `;
+    document.body.appendChild(panel);
 }
 
 async function sendAIMessage() {
@@ -168,28 +268,31 @@ async function sendAIMessage() {
     const messagesContainer = document.getElementById('aiChatMessages');
     
     // Add user message
-    messagesContainer.innerHTML += `
-        <div class="ai-message user">
-            <div class="ai-bubble">${escapeHtml(message)}</div>
-        </div>
-    `;
+    const userMsg = document.createElement('div');
+    userMsg.className = 'ai-message user';
+    userMsg.innerHTML = `<div class="ai-bubble">${escapeHtml(message)}</div>`;
+    messagesContainer.appendChild(userMsg);
     
     input.value = '';
     messagesContainer.scrollTop = messagesContainer.scrollHeight;
     
     // Add loading indicator
     const loadingId = 'loading-' + Date.now();
-    messagesContainer.innerHTML += `
-        <div class="ai-message assistant" id="${loadingId}">
-            <div class="ai-avatar">
-                <span class="material-icons-round">auto_awesome</span>
-            </div>
-            <div class="ai-bubble">
-                <div class="loading-inline"><div class="spinner small"></div></div>
-            </div>
+    const loadingMsg = document.createElement('div');
+    loadingMsg.id = loadingId;
+    loadingMsg.className = 'ai-message assistant';
+    loadingMsg.innerHTML = `
+        <div class="ai-avatar">
+            <span class="material-icons-round">auto_awesome</span>
+        </div>
+        <div class="ai-bubble">
+            <div class="loading-inline"><div class="spinner small"></div></div>
         </div>
     `;
+    messagesContainer.appendChild(loadingMsg);
     messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    
+    showLoading();
     
     try {
         const res = await fetch('/api/ai/chat', {
@@ -198,33 +301,41 @@ async function sendAIMessage() {
             body: JSON.stringify({ message })
         });
         
+        hideLoading();
         const data = await res.json();
         
         // Remove loading indicator
-        document.getElementById(loadingId).remove();
+        const loading = document.getElementById(loadingId);
+        if (loading) loading.remove();
         
         // Add assistant response
         const response = data.response || data.error || 'Sorry, I encountered an error.';
-        messagesContainer.innerHTML += `
-            <div class="ai-message assistant">
-                <div class="ai-avatar">
-                    <span class="material-icons-round">auto_awesome</span>
-                </div>
-                <div class="ai-bubble">${formatAIResponse(response)}</div>
+        const assistantMsg = document.createElement('div');
+        assistantMsg.className = 'ai-message assistant';
+        assistantMsg.innerHTML = `
+            <div class="ai-avatar">
+                <span class="material-icons-round">auto_awesome</span>
             </div>
+            <div class="ai-bubble">${formatAIResponse(response)}</div>
         `;
+        messagesContainer.appendChild(assistantMsg);
         messagesContainer.scrollTop = messagesContainer.scrollHeight;
         
     } catch (error) {
-        document.getElementById(loadingId).remove();
-        messagesContainer.innerHTML += `
-            <div class="ai-message assistant">
-                <div class="ai-avatar">
-                    <span class="material-icons-round">auto_awesome</span>
-                </div>
-                <div class="ai-bubble">Sorry, I encountered an error. Please try again.</div>
+        hideLoading();
+        const loading = document.getElementById(loadingId);
+        if (loading) loading.remove();
+        
+        const errorMsg = document.createElement('div');
+        errorMsg.className = 'ai-message assistant';
+        errorMsg.innerHTML = `
+            <div class="ai-avatar">
+                <span class="material-icons-round">auto_awesome</span>
             </div>
+            <div class="ai-bubble">Sorry, I encountered an error. Please try again.</div>
         `;
+        messagesContainer.appendChild(errorMsg);
+        console.error('Chat error:', error);
     }
 }
 
@@ -248,33 +359,15 @@ function formatAIResponse(text) {
     return html;
 }
 
-function escapeHtml(text) {
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
-}
-
-// Handle enter key in AI chat
-document.addEventListener('DOMContentLoaded', function() {
-    const aiChatInput = document.getElementById('aiChatInput');
-    if (aiChatInput) {
-        aiChatInput.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                sendAIMessage();
-            }
-        });
-    }
-});
-
 // ==================== Global Search ====================
 
 let searchTimeout;
 
-document.addEventListener('DOMContentLoaded', function() {
+function initSearch() {
     const searchInput = document.getElementById('globalSearch');
     const searchResults = document.getElementById('searchResults');
     
-    if (searchInput) {
+    if (searchInput && searchResults) {
         searchInput.addEventListener('input', function() {
             clearTimeout(searchTimeout);
             const query = this.value.trim();
@@ -291,10 +384,12 @@ document.addEventListener('DOMContentLoaded', function() {
             setTimeout(() => searchResults.classList.remove('active'), 200);
         });
     }
-});
+}
 
 async function performSearch(query) {
     const searchResults = document.getElementById('searchResults');
+    
+    if (!searchResults) return;
     
     try {
         const res = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
@@ -309,8 +404,8 @@ async function performSearch(query) {
                     <div class="list-item" onclick="navigateToResult('${result.type}', '${result.id}')">
                         <span class="material-icons-outlined">${result.icon}</span>
                         <div class="list-item-content">
-                            <div class="list-item-title">${result.title}</div>
-                            <div class="list-item-subtitle">${result.subtitle}</div>
+                            <div class="list-item-title">${escapeHtml(result.title)}</div>
+                            <div class="list-item-subtitle">${escapeHtml(result.subtitle)}</div>
                         </div>
                     </div>
                 `;
@@ -322,6 +417,7 @@ async function performSearch(query) {
         searchResults.classList.add('active');
     } catch (error) {
         console.error('Search error:', error);
+        showToast('Search failed', 'error');
     }
 }
 
@@ -338,4 +434,29 @@ function navigateToResult(type, id) {
 
 document.addEventListener('DOMContentLoaded', function() {
     checkApiStatus();
+    initSearch();
+    
+    // Add AI chat button if not exists
+    if (!document.getElementById('aiChatPanel')) {
+        const fab = document.createElement('button');
+        fab.id = 'aiChatFab';
+        fab.className = 'fab fab-primary';
+        fab.innerHTML = '<span class="material-icons-round">auto_awesome</span>';
+        fab.onclick = () => openAIChat();
+        document.body.appendChild(fab);
+    }
+});
+
+// Handle AI chat input enter key
+document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(() => {
+        const aiChatInput = document.getElementById('aiChatInput');
+        if (aiChatInput) {
+            aiChatInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    sendAIMessage();
+                }
+            });
+        }
+    }, 500);
 });

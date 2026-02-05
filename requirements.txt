@@ -10,4 +10,3 @@ google-genai>=1.0.0
 
 # Utilities
 python-dotenv>=1.0.0
-uuid>=1.30

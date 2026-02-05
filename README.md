@@ -1,15 +1,6 @@
-# 🚀 GeminiCRM Pro - AI-Powered Sales Intelligence
+# 🚀 GeminiCRM Pro - AI-Powered CRM
 
-<p align="center">
-  <img src="https://img.shields.io/badge/Gemini%203-Powered-4285f4?style=for-the-badge&logo=google&logoColor=white" alt="Gemini 3">
-  <img src="https://img.shields.io/badge/Python-3.9+-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python">
-  <img src="https://img.shields.io/badge/Flask-3.0-000000?style=for-the-badge&logo=flask&logoColor=white" alt="Flask">
-</p>
-
-<p align="center">
-  <strong>🏆 Built for the Gemini 3 Hackathon ($100K Prize Pool)</strong><br>
-  An AI-native CRM that puts Google's Gemini 3 at the center of every sales interaction.
-</p>
+An enterprise-grade Customer Relationship Management system powered by Google's Gemini AI. Built with Flask and Material Design 3 principles.
 
 ---
 

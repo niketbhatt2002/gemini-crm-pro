@@ -10,7 +10,7 @@ class Config:
     """Application configuration"""
     SECRET_KEY = os.environ.get('SECRET_KEY', os.urandom(24).hex())
     GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY', '')
-    GEMINI_MODEL = 'gemini-3-flash-preview'
+    GEMINI_MODEL = 'gemini-2.0-flash'
     
     # App Settings
     APP_NAME = 'GeminiCRM'
