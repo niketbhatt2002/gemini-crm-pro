@@ -1,0 +1,542 @@
+{% extends "base.html" %}
+
+{% block title %}Settings - GeminiCRM Pro{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="page-title">
+        <h1>Settings</h1>
+        <p class="page-subtitle">Manage your account and preferences</p>
+    </div>
+</div>
+
+<div class="settings-container">
+    <!-- Profile Settings -->
+    <div class="settings-section">
+        <div class="settings-header">
+            <span class="material-icons-outlined">person</span>
+            <div>
+                <h3>Profile Settings</h3>
+                <p>Update your personal information</p>
+            </div>
+        </div>
+        <div class="settings-body">
+            <form id="profileForm" onsubmit="saveProfile(event)">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">First Name</label>
+                        <input type="text" id="firstName" class="form-input" value="{{ current_user.first_name }}">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Last Name</label>
+                        <input type="text" id="lastName" class="form-input" value="{{ current_user.last_name }}">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Email</label>
+                    <input type="email" class="form-input" value="{{ current_user.email }}" disabled>
+                    <p class="form-hint">Email cannot be changed</p>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Phone</label>
+                        <input type="text" id="phone" class="form-input" value="{{ current_user.phone or '' }}">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Title</label>
+                        <input type="text" id="title" class="form-input" value="{{ current_user.title or '' }}">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Department</label>
+                    <input type="text" id="department" class="form-input" value="{{ current_user.department or '' }}">
+                </div>
+                <button type="submit" class="btn btn-primary">
+                    <span class="material-icons-outlined">save</span>
+                    Save Changes
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- API Configuration -->
+    <div class="settings-section">
+        <div class="settings-header">
+            <span class="material-icons-outlined">api</span>
+            <div>
+                <h3>Gemini AI Configuration</h3>
+                <p>Configure your AI integration</p>
+            </div>
+        </div>
+        <div class="settings-body">
+            <div class="api-status-card" id="apiStatusCard">
+                <span class="status-indicator"></span>
+                <span class="status-text">Checking status...</span>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Gemini API Key</label>
+                <div class="input-with-button">
+                    <input type="password" id="apiKeyInput" class="form-input" placeholder="Enter your Gemini API key">
+                    <button type="button" class="btn btn-primary" onclick="saveApiKey()">
+                        <span class="material-icons-outlined">save</span>
+                        Save
+                    </button>
+                </div>
+                <p class="form-hint">Get your API key from <a href="https://aistudio.google.com/apikey" target="_blank">Google AI Studio</a></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Settings -->
+    <div class="settings-section">
+        <div class="settings-header">
+            <span class="material-icons-outlined">notifications</span>
+            <div>
+                <h3>Notification Preferences</h3>
+                <p>Control how you receive notifications</p>
+            </div>
+        </div>
+        <div class="settings-body">
+            <div class="setting-item">
+                <div class="setting-info">
+                    <strong>Email Notifications</strong>
+                    <p>Receive email alerts for important updates</p>
+                </div>
+                <label class="switch">
+                    <input type="checkbox" id="emailNotifications" checked>
+                    <span class="slider"></span>
+                </label>
+            </div>
+            <div class="setting-item">
+                <div class="setting-info">
+                    <strong>Task Reminders</strong>
+                    <p>Get notified about upcoming and overdue tasks</p>
+                </div>
+                <label class="switch">
+                    <input type="checkbox" id="taskReminders" checked>
+                    <span class="slider"></span>
+                </label>
+            </div>
+            <div class="setting-item">
+                <div class="setting-info">
+                    <strong>Deal Updates</strong>
+                    <p>Notifications when deals change stages</p>
+                </div>
+                <label class="switch">
+                    <input type="checkbox" id="dealUpdates" checked>
+                    <span class="slider"></span>
+                </label>
+            </div>
+            <div class="setting-item">
+                <div class="setting-info">
+                    <strong>AI Insights</strong>
+                    <p>Receive AI-generated insights and recommendations</p>
+                </div>
+                <label class="switch">
+                    <input type="checkbox" id="aiInsights" checked>
+                    <span class="slider"></span>
+                </label>
+            </div>
+        </div>
+    </div>
+
+    <!-- Data Export -->
+    <div class="settings-section">
+        <div class="settings-header">
+            <span class="material-icons-outlined">download</span>
+            <div>
+                <h3>Data Export</h3>
+                <p>Export your CRM data</p>
+            </div>
+        </div>
+        <div class="settings-body">
+            <div class="export-buttons">
+                <button class="btn btn-outline" onclick="exportData('leads')">
+                    <span class="material-icons-outlined">person_search</span>
+                    Export Leads
+                </button>
+                <button class="btn btn-outline" onclick="exportData('contacts')">
+                    <span class="material-icons-outlined">contacts</span>
+                    Export Contacts
+                </button>
+                <button class="btn btn-outline" onclick="exportData('opportunities')">
+                    <span class="material-icons-outlined">handshake</span>
+                    Export Deals
+                </button>
+                <button class="btn btn-outline" onclick="exportData('tasks')">
+                    <span class="material-icons-outlined">task_alt</span>
+                    Export Tasks
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Danger Zone -->
+    <div class="settings-section danger-zone">
+        <div class="settings-header">
+            <span class="material-icons-outlined">warning</span>
+            <div>
+                <h3>Danger Zone</h3>
+                <p>Irreversible actions</p>
+            </div>
+        </div>
+        <div class="settings-body">
+            <div class="danger-item">
+                <div>
+                    <strong>Delete All Data</strong>
+                    <p>Permanently delete all your CRM data. This cannot be undone.</p>
+                </div>
+                <button class="btn btn-danger" onclick="confirmDeleteData()">Delete All Data</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .settings-container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+    
+    .settings-section {
+        background: var(--surface, #fff);
+        border-radius: 16px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        margin-bottom: 24px;
+        overflow: hidden;
+    }
+    
+    .settings-header {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        padding: 20px 24px;
+        border-bottom: 1px solid var(--border-color, #e0e0e0);
+        background: var(--surface-variant, #f8f9fa);
+    }
+    
+    .settings-header .material-icons-outlined {
+        font-size: 28px;
+        color: var(--primary, #4285f4);
+    }
+    
+    .settings-header h3 {
+        margin: 0 0 4px;
+        font-size: 18px;
+    }
+    
+    .settings-header p {
+        margin: 0;
+        font-size: 14px;
+        color: var(--text-secondary, #666);
+    }
+    
+    .settings-body {
+        padding: 24px;
+    }
+    
+    .form-row {
+        display: flex;
+        gap: 16px;
+    }
+    
+    .form-row .form-group {
+        flex: 1;
+    }
+    
+    .form-group {
+        margin-bottom: 20px;
+    }
+    
+    .form-label {
+        display: block;
+        font-weight: 500;
+        margin-bottom: 8px;
+        color: var(--text-primary, #333);
+    }
+    
+    .form-input {
+        width: 100%;
+        padding: 12px 16px;
+        border: 2px solid var(--border-color, #e0e0e0);
+        border-radius: 10px;
+        font-size: 15px;
+        transition: all 0.2s;
+        box-sizing: border-box;
+    }
+    
+    .form-input:focus {
+        outline: none;
+        border-color: var(--primary, #4285f4);
+        box-shadow: 0 0 0 4px rgba(66, 133, 244, 0.1);
+    }
+    
+    .form-input:disabled {
+        background: var(--surface-variant, #f5f5f5);
+        cursor: not-allowed;
+    }
+    
+    .form-hint {
+        font-size: 13px;
+        color: var(--text-secondary, #666);
+        margin-top: 6px;
+    }
+    
+    .form-hint a {
+        color: var(--primary, #4285f4);
+    }
+    
+    .input-with-button {
+        display: flex;
+        gap: 12px;
+    }
+    
+    .input-with-button .form-input {
+        flex: 1;
+    }
+    
+    .api-status-card {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 16px;
+        background: var(--surface-variant, #f8f9fa);
+        border-radius: 10px;
+        margin-bottom: 20px;
+    }
+    
+    .api-status-card .status-indicator {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: #9e9e9e;
+    }
+    
+    .api-status-card.connected .status-indicator {
+        background: #34a853;
+    }
+    
+    .api-status-card.disconnected .status-indicator {
+        background: #ea4335;
+    }
+    
+    .setting-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 16px 0;
+        border-bottom: 1px solid var(--border-color, #e0e0e0);
+    }
+    
+    .setting-item:last-child {
+        border-bottom: none;
+    }
+    
+    .setting-info strong {
+        display: block;
+        margin-bottom: 4px;
+    }
+    
+    .setting-info p {
+        margin: 0;
+        font-size: 13px;
+        color: var(--text-secondary, #666);
+    }
+    
+    /* Toggle Switch */
+    .switch {
+        position: relative;
+        width: 52px;
+        height: 28px;
+    }
+    
+    .switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+    
+    .slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #ccc;
+        transition: 0.3s;
+        border-radius: 28px;
+    }
+    
+    .slider:before {
+        position: absolute;
+        content: "";
+        height: 22px;
+        width: 22px;
+        left: 3px;
+        bottom: 3px;
+        background-color: white;
+        transition: 0.3s;
+        border-radius: 50%;
+    }
+    
+    input:checked + .slider {
+        background-color: var(--primary, #4285f4);
+    }
+    
+    input:checked + .slider:before {
+        transform: translateX(24px);
+    }
+    
+    .export-buttons {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 12px;
+    }
+    
+    .danger-zone .settings-header {
+        background: #fdecea;
+    }
+    
+    .danger-zone .settings-header .material-icons-outlined {
+        color: #ea4335;
+    }
+    
+    .danger-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .danger-item p {
+        margin: 4px 0 0;
+        font-size: 13px;
+        color: var(--text-secondary, #666);
+    }
+    
+    .btn-danger {
+        background: #ea4335;
+        color: white;
+        border: none;
+    }
+    
+    .btn-danger:hover {
+        background: #d32f2f;
+    }
+    
+    @media (max-width: 768px) {
+        .form-row {
+            flex-direction: column;
+        }
+        
+        .danger-item {
+            flex-direction: column;
+            gap: 12px;
+            text-align: center;
+        }
+    }
+</style>
+
+<script>
+    // Check API status on load
+    document.addEventListener('DOMContentLoaded', function() {
+        checkApiStatus();
+    });
+    
+    function checkApiStatus() {
+        fetch('/api/config/status')
+            .then(r => r.json())
+            .then(data => {
+                const card = document.getElementById('apiStatusCard');
+                if (data.configured) {
+                    card.classList.add('connected');
+                    card.classList.remove('disconnected');
+                    card.querySelector('.status-text').textContent = 'Connected - AI features enabled';
+                } else {
+                    card.classList.add('disconnected');
+                    card.classList.remove('connected');
+                    card.querySelector('.status-text').textContent = 'Not configured - AI features disabled';
+                }
+            });
+    }
+    
+    function saveProfile(event) {
+        event.preventDefault();
+        
+        fetch('/api/user/me', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                first_name: document.getElementById('firstName').value,
+                last_name: document.getElementById('lastName').value,
+                phone: document.getElementById('phone').value,
+                title: document.getElementById('title').value,
+                department: document.getElementById('department').value
+            })
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                showToast('Profile updated successfully', 'success');
+            } else {
+                showToast('Failed to update profile', 'error');
+            }
+        })
+        .catch(() => showToast('Error saving profile', 'error'));
+    }
+    
+    function saveApiKey() {
+        const key = document.getElementById('apiKeyInput').value;
+        if (!key) {
+            showToast('Please enter an API key', 'warning');
+            return;
+        }
+        
+        fetch('/api/config', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ api_key: key })
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                showToast('API key saved successfully', 'success');
+                checkApiStatus();
+                document.getElementById('apiKeyInput').value = '';
+            } else {
+                showToast('Failed to save API key', 'error');
+            }
+        })
+        .catch(() => showToast('Error saving API key', 'error'));
+    }
+    
+    function exportData(type) {
+        fetch(`/api/export/${type}`)
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    // Create download
+                    const blob = new Blob([JSON.stringify(data.data, null, 2)], { type: 'application/json' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `geminicrm_${type}_${new Date().toISOString().split('T')[0]}.json`;
+                    a.click();
+                    URL.revokeObjectURL(url);
+                    showToast(`Exported ${data.count} ${type}`, 'success');
+                }
+            })
+            .catch(() => showToast('Export failed', 'error'));
+    }
+    
+    function confirmDeleteData() {
+        if (confirm('Are you sure you want to delete ALL your data? This action cannot be undone!')) {
+            if (confirm('This is your last chance. All leads, contacts, deals, and tasks will be permanently deleted. Continue?')) {
+                showToast('Feature coming soon', 'info');
+            }
+        }
+    }
+</script>
+{% endblock %}

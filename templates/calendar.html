@@ -1,0 +1,712 @@
+{% extends "base.html" %}
+
+{% block title %}Calendar - GeminiCRM Pro{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="page-title">
+        <h1>Calendar</h1>
+        <p class="page-subtitle">Manage your meetings and events</p>
+    </div>
+    <div class="page-actions">
+        <button class="btn btn-outline" onclick="goToToday()">Today</button>
+        <button class="btn btn-primary" onclick="showAddEventModal()">
+            <span class="material-icons-round">add</span>
+            New Event
+        </button>
+    </div>
+</div>
+
+<div class="calendar-container">
+    <!-- Calendar Navigation -->
+    <div class="calendar-nav">
+        <button class="btn btn-icon btn-ghost" onclick="changeMonth(-1)">
+            <span class="material-icons-round">chevron_left</span>
+        </button>
+        <h2 id="currentMonth">December 2024</h2>
+        <button class="btn btn-icon btn-ghost" onclick="changeMonth(1)">
+            <span class="material-icons-round">chevron_right</span>
+        </button>
+    </div>
+    
+    <!-- Calendar Grid -->
+    <div class="calendar-grid">
+        <div class="calendar-header">
+            <div class="day-name">Sun</div>
+            <div class="day-name">Mon</div>
+            <div class="day-name">Tue</div>
+            <div class="day-name">Wed</div>
+            <div class="day-name">Thu</div>
+            <div class="day-name">Fri</div>
+            <div class="day-name">Sat</div>
+        </div>
+        <div class="calendar-body" id="calendarBody">
+            <!-- Days will be rendered here -->
+        </div>
+    </div>
+    
+    <!-- Upcoming Events Sidebar -->
+    <div class="events-sidebar">
+        <h3>Upcoming Tasks</h3>
+        <div id="upcomingEvents">
+            <div class="loading-placeholder">Loading tasks...</div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Event Modal -->
+<div class="modal" id="eventModal">
+    <div class="modal-overlay" onclick="closeEventModal()"></div>
+    <div class="modal-container">
+        <div class="modal-header">
+            <h2 id="eventModalTitle">New Event</h2>
+            <button class="btn btn-icon btn-ghost" onclick="closeEventModal()">
+                <span class="material-icons-round">close</span>
+            </button>
+        </div>
+        <div class="modal-body">
+            <form id="eventForm">
+                <input type="hidden" id="eventId">
+                
+                <div class="form-group">
+                    <label class="form-label required">Event Title</label>
+                    <input type="text" id="eventTitle" class="form-input" required placeholder="Meeting with client">
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Date</label>
+                        <input type="date" id="eventDate" class="form-input">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Time</label>
+                        <input type="time" id="eventTime" class="form-input">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Type</label>
+                    <select id="eventType" class="form-input">
+                        <option value="meeting">Meeting</option>
+                        <option value="call">Call</option>
+                        <option value="demo">Demo</option>
+                        <option value="follow_up">Follow Up</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Priority</label>
+                    <select id="eventPriority" class="form-input">
+                        <option value="low">Low</option>
+                        <option value="normal" selected>Normal</option>
+                        <option value="high">High</option>
+                        <option value="urgent">Urgent</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Description</label>
+                    <textarea id="eventDescription" class="form-input" rows="3" placeholder="Event details..."></textarea>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-text" onclick="closeEventModal()">Cancel</button>
+            <button class="btn btn-primary" onclick="saveEvent()">
+                <span class="material-icons-round">save</span>
+                Save Event
+            </button>
+        </div>
+    </div>
+</div>
+
+<style>
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 24px;
+    }
+    
+    .page-title h1 {
+        margin: 0 0 4px;
+        font-size: 28px;
+    }
+    
+    .page-subtitle {
+        margin: 0;
+        color: var(--text-secondary, #666);
+    }
+    
+    .page-actions {
+        display: flex;
+        gap: 12px;
+    }
+    
+    .calendar-container {
+        display: grid;
+        grid-template-columns: 1fr 320px;
+        gap: 24px;
+        grid-template-rows: auto 1fr;
+    }
+    
+    .calendar-nav {
+        grid-column: 1;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+    }
+    
+    .calendar-nav h2 {
+        margin: 0;
+        font-size: 24px;
+        min-width: 200px;
+        text-align: center;
+    }
+    
+    .calendar-grid {
+        grid-column: 1;
+        background: var(--surface, #fff);
+        border-radius: 16px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        overflow: hidden;
+    }
+    
+    .calendar-header {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        background: var(--surface-variant, #f8f9fa);
+        border-bottom: 1px solid var(--border-color, #e0e0e0);
+    }
+    
+    .day-name {
+        padding: 16px;
+        text-align: center;
+        font-weight: 600;
+        color: var(--text-secondary, #666);
+        font-size: 13px;
+        text-transform: uppercase;
+    }
+    
+    .calendar-body {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+    }
+    
+    .calendar-day {
+        min-height: 100px;
+        padding: 8px;
+        border-right: 1px solid var(--border-color, #e0e0e0);
+        border-bottom: 1px solid var(--border-color, #e0e0e0);
+        cursor: pointer;
+        transition: background 0.2s;
+    }
+    
+    .calendar-day:nth-child(7n) {
+        border-right: none;
+    }
+    
+    .calendar-day:hover {
+        background: var(--surface-variant, #f8f9fa);
+    }
+    
+    .calendar-day.other-month {
+        opacity: 0.4;
+    }
+    
+    .calendar-day.today {
+        background: rgba(66, 133, 244, 0.1);
+    }
+    
+    .calendar-day.today .day-number {
+        background: var(--primary, #4285f4);
+        color: white;
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .day-number {
+        font-weight: 600;
+        font-size: 14px;
+        margin-bottom: 8px;
+    }
+    
+    .day-events {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+    
+    .day-event {
+        font-size: 11px;
+        padding: 4px 6px;
+        border-radius: 4px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    
+    .day-event.meeting {
+        background: rgba(66, 133, 244, 0.2);
+        color: #1967d2;
+    }
+    
+    .day-event.call {
+        background: rgba(52, 168, 83, 0.2);
+        color: #1e8e3e;
+    }
+    
+    .day-event.demo {
+        background: rgba(251, 188, 4, 0.2);
+        color: #f9a825;
+    }
+    
+    .day-event.follow_up {
+        background: rgba(234, 67, 53, 0.2);
+        color: #c62828;
+    }
+    
+    .day-event.other {
+        background: rgba(156, 39, 176, 0.2);
+        color: #7b1fa2;
+    }
+    
+    .events-sidebar {
+        grid-column: 2;
+        grid-row: 1 / 3;
+        background: var(--surface, #fff);
+        border-radius: 16px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        padding: 20px;
+        max-height: calc(100vh - 200px);
+        overflow-y: auto;
+    }
+    
+    .events-sidebar h3 {
+        margin: 0 0 16px;
+        font-size: 18px;
+    }
+    
+    .upcoming-event {
+        display: flex;
+        gap: 12px;
+        padding: 12px;
+        border-radius: 10px;
+        background: var(--surface-variant, #f8f9fa);
+        margin-bottom: 12px;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    
+    .upcoming-event:hover {
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        transform: translateY(-1px);
+    }
+    
+    .event-date {
+        text-align: center;
+        min-width: 50px;
+    }
+    
+    .event-date .day {
+        font-size: 24px;
+        font-weight: 700;
+        color: var(--primary, #4285f4);
+    }
+    
+    .event-date .month {
+        font-size: 12px;
+        color: var(--text-secondary, #666);
+        text-transform: uppercase;
+    }
+    
+    .event-info {
+        flex: 1;
+    }
+    
+    .event-info strong {
+        display: block;
+        margin-bottom: 4px;
+    }
+    
+    .event-info span {
+        font-size: 13px;
+        color: var(--text-secondary, #666);
+    }
+    
+    .event-priority {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        margin-top: 6px;
+    }
+    
+    .event-priority.low { background: #9e9e9e; }
+    .event-priority.normal { background: #4285f4; }
+    .event-priority.high { background: #ff9800; }
+    .event-priority.urgent { background: #ea4335; }
+    
+    .no-events {
+        text-align: center;
+        padding: 40px 20px;
+        color: var(--text-secondary, #666);
+    }
+    
+    .no-events .material-icons-outlined {
+        font-size: 48px;
+        margin-bottom: 12px;
+        opacity: 0.5;
+    }
+    
+    /* Modal styles */
+    .modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 1000;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .modal.active {
+        display: flex;
+    }
+    
+    .modal-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0,0,0,0.5);
+    }
+    
+    .modal-container {
+        position: relative;
+        background: var(--surface, #fff);
+        border-radius: 20px;
+        max-width: 500px;
+        width: 90%;
+        max-height: 90vh;
+        overflow-y: auto;
+    }
+    
+    .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 20px 24px;
+        border-bottom: 1px solid var(--border-color, #e0e0e0);
+    }
+    
+    .modal-header h2 {
+        margin: 0;
+        font-size: 20px;
+    }
+    
+    .modal-body {
+        padding: 24px;
+    }
+    
+    .modal-footer {
+        display: flex;
+        justify-content: flex-end;
+        gap: 12px;
+        padding: 16px 24px;
+        border-top: 1px solid var(--border-color, #e0e0e0);
+    }
+    
+    .form-row {
+        display: flex;
+        gap: 16px;
+    }
+    
+    .form-row .form-group {
+        flex: 1;
+    }
+    
+    .form-group {
+        margin-bottom: 20px;
+    }
+    
+    .form-label {
+        display: block;
+        font-weight: 500;
+        margin-bottom: 8px;
+    }
+    
+    .form-label.required::after {
+        content: ' *';
+        color: #ea4335;
+    }
+    
+    .form-input {
+        width: 100%;
+        padding: 12px 16px;
+        border: 2px solid var(--border-color, #e0e0e0);
+        border-radius: 10px;
+        font-size: 15px;
+        transition: all 0.2s;
+        box-sizing: border-box;
+    }
+    
+    .form-input:focus {
+        outline: none;
+        border-color: var(--primary, #4285f4);
+    }
+    
+    @media (max-width: 900px) {
+        .calendar-container {
+            grid-template-columns: 1fr;
+        }
+        
+        .events-sidebar {
+            grid-column: 1;
+            grid-row: auto;
+        }
+    }
+</style>
+
+<script>
+    let currentDate = new Date();
+    let tasks = [];
+    
+    const months = ['January', 'February', 'March', 'April', 'May', 'June', 
+                    'July', 'August', 'September', 'October', 'November', 'December'];
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        loadTasks();
+        renderCalendar();
+    });
+    
+    function loadTasks() {
+        fetch('/api/tasks')
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    tasks = data.tasks || [];
+                    renderCalendar();
+                    renderUpcomingEvents();
+                }
+            })
+            .catch(err => console.error('Error loading tasks:', err));
+    }
+    
+    function renderCalendar() {
+        const year = currentDate.getFullYear();
+        const month = currentDate.getMonth();
+        
+        // Update header
+        document.getElementById('currentMonth').textContent = `${months[month]} ${year}`;
+        
+        // Get first and last day of month
+        const firstDay = new Date(year, month, 1);
+        const lastDay = new Date(year, month + 1, 0);
+        
+        // Get days to display from previous month
+        const startDayOfWeek = firstDay.getDay();
+        const daysInMonth = lastDay.getDate();
+        
+        // Get days from previous month
+        const prevMonth = new Date(year, month, 0);
+        const prevMonthDays = prevMonth.getDate();
+        
+        let html = '';
+        const today = new Date();
+        
+        // Previous month days
+        for (let i = startDayOfWeek - 1; i >= 0; i--) {
+            const day = prevMonthDays - i;
+            html += `<div class="calendar-day other-month"><div class="day-number">${day}</div></div>`;
+        }
+        
+        // Current month days
+        for (let day = 1; day <= daysInMonth; day++) {
+            const date = new Date(year, month, day);
+            const isToday = date.toDateString() === today.toDateString();
+            const dayTasks = getTasksForDate(date);
+            
+            html += `
+                <div class="calendar-day ${isToday ? 'today' : ''}" onclick="selectDate(${year}, ${month}, ${day})">
+                    <div class="day-number">${day}</div>
+                    <div class="day-events">
+                        ${dayTasks.slice(0, 3).map(t => `
+                            <div class="day-event ${t.task_type || 'other'}">${escapeHtml(t.subject || t.title)}</div>
+                        `).join('')}
+                        ${dayTasks.length > 3 ? `<div class="day-event other">+${dayTasks.length - 3} more</div>` : ''}
+                    </div>
+                </div>
+            `;
+        }
+        
+        // Next month days
+        const totalDisplayed = startDayOfWeek + daysInMonth;
+        const remaining = 42 - totalDisplayed; // 6 rows × 7 days
+        for (let day = 1; day <= remaining && day <= 14; day++) {
+            html += `<div class="calendar-day other-month"><div class="day-number">${day}</div></div>`;
+        }
+        
+        document.getElementById('calendarBody').innerHTML = html;
+    }
+    
+    function getTasksForDate(date) {
+        const dateStr = date.toISOString().split('T')[0];
+        return tasks.filter(t => {
+            if (!t.due_date) return false;
+            return t.due_date.split('T')[0] === dateStr;
+        });
+    }
+    
+    function renderUpcomingEvents() {
+        const container = document.getElementById('upcomingEvents');
+        
+        // Get tasks for next 14 days
+        const today = new Date();
+        const futureDate = new Date(today.getTime() + 14 * 24 * 60 * 60 * 1000);
+        
+        const upcoming = tasks.filter(t => {
+            if (!t.due_date) return false;
+            const taskDate = new Date(t.due_date);
+            return taskDate >= today && taskDate <= futureDate && t.status !== 'completed';
+        }).sort((a, b) => new Date(a.due_date) - new Date(b.due_date));
+        
+        if (upcoming.length === 0) {
+            container.innerHTML = `
+                <div class="no-events">
+                    <span class="material-icons-outlined">event_available</span>
+                    <p>No upcoming tasks</p>
+                </div>
+            `;
+            return;
+        }
+        
+        container.innerHTML = upcoming.map(task => {
+            const date = new Date(task.due_date);
+            return `
+                <div class="upcoming-event" onclick="editEvent('${task.id}')">
+                    <div class="event-date">
+                        <div class="day">${date.getDate()}</div>
+                        <div class="month">${months[date.getMonth()].substr(0, 3)}</div>
+                    </div>
+                    <div class="event-info">
+                        <strong>${escapeHtml(task.subject || task.title)}</strong>
+                        <span>${task.task_type || 'Task'} • ${formatTime(date)}</span>
+                    </div>
+                    <div class="event-priority ${task.priority || 'normal'}"></div>
+                </div>
+            `;
+        }).join('');
+    }
+    
+    function formatTime(date) {
+        return date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+    }
+    
+    function changeMonth(delta) {
+        currentDate.setMonth(currentDate.getMonth() + delta);
+        renderCalendar();
+    }
+    
+    function goToToday() {
+        currentDate = new Date();
+        renderCalendar();
+    }
+    
+    function selectDate(year, month, day) {
+        document.getElementById('eventDate').value = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+        showAddEventModal();
+    }
+    
+    function showAddEventModal() {
+        document.getElementById('eventModalTitle').textContent = 'New Event';
+        document.getElementById('eventForm').reset();
+        document.getElementById('eventId').value = '';
+        
+        if (!document.getElementById('eventDate').value) {
+            document.getElementById('eventDate').value = new Date().toISOString().split('T')[0];
+        }
+        
+        document.getElementById('eventModal').classList.add('active');
+    }
+    
+    function closeEventModal() {
+        document.getElementById('eventModal').classList.remove('active');
+    }
+    
+    function editEvent(id) {
+        const task = tasks.find(t => t.id === id);
+        if (!task) return;
+        
+        document.getElementById('eventModalTitle').textContent = 'Edit Event';
+        document.getElementById('eventId').value = task.id;
+        document.getElementById('eventTitle').value = task.subject || task.title || '';
+        
+        if (task.due_date) {
+            const date = new Date(task.due_date);
+            document.getElementById('eventDate').value = date.toISOString().split('T')[0];
+            document.getElementById('eventTime').value = date.toTimeString().substr(0, 5);
+        }
+        
+        document.getElementById('eventType').value = task.task_type || 'meeting';
+        document.getElementById('eventPriority').value = task.priority || 'normal';
+        document.getElementById('eventDescription').value = task.description || '';
+        
+        document.getElementById('eventModal').classList.add('active');
+    }
+    
+    function saveEvent() {
+        const id = document.getElementById('eventId').value;
+        const date = document.getElementById('eventDate').value;
+        const time = document.getElementById('eventTime').value || '09:00';
+        
+        const data = {
+            subject: document.getElementById('eventTitle').value,
+            title: document.getElementById('eventTitle').value,
+            due_date: `${date}T${time}:00`,
+            task_type: document.getElementById('eventType').value,
+            priority: document.getElementById('eventPriority').value,
+            description: document.getElementById('eventDescription').value
+        };
+        
+        if (!data.subject) {
+            showToast('Event title is required', 'error');
+            return;
+        }
+        
+        const url = id ? `/api/tasks/${id}` : '/api/tasks';
+        const method = id ? 'PUT' : 'POST';
+        
+        fetch(url, {
+            method: method,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                showToast(id ? 'Event updated' : 'Event created', 'success');
+                closeEventModal();
+                loadTasks();
+            } else {
+                showToast(data.error || 'Error saving event', 'error');
+            }
+        })
+        .catch(() => showToast('Error saving event', 'error'));
+    }
+    
+    function escapeHtml(text) {
+        if (!text) return '';
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+</script>
+{% endblock %}

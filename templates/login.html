@@ -1,0 +1,326 @@
+{% extends "auth_base.html" %}
+
+{% block title %}Login - GeminiCRM Pro{% endblock %}
+
+{% block content %}
+<style>
+    body {
+        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+        min-height: 100vh;
+    }
+    
+    .login-container {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+    }
+    
+    .login-card {
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 24px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        overflow: hidden;
+        width: 100%;
+        max-width: 450px;
+    }
+    
+    .login-header {
+        background: linear-gradient(135deg, #4285f4 0%, #34a853 100%);
+        padding: 40px 30px;
+        text-align: center;
+        color: white;
+    }
+    
+    .login-header .logo {
+        font-size: 48px;
+        margin-bottom: 10px;
+    }
+    
+    .login-header h1 {
+        margin: 0;
+        font-size: 28px;
+        font-weight: 700;
+    }
+    
+    .login-header p {
+        margin: 10px 0 0;
+        opacity: 0.9;
+        font-size: 14px;
+    }
+    
+    .login-body {
+        padding: 40px 30px;
+    }
+    
+    .form-group {
+        margin-bottom: 24px;
+    }
+    
+    .form-group label {
+        display: block;
+        font-weight: 600;
+        margin-bottom: 8px;
+        color: #333;
+        font-size: 14px;
+    }
+    
+    .form-control {
+        width: 100%;
+        padding: 14px 16px;
+        border: 2px solid #e0e0e0;
+        border-radius: 12px;
+        font-size: 16px;
+        transition: all 0.3s ease;
+        box-sizing: border-box;
+    }
+    
+    .form-control:focus {
+        outline: none;
+        border-color: #4285f4;
+        box-shadow: 0 0 0 4px rgba(66, 133, 244, 0.1);
+    }
+    
+    .form-control::placeholder {
+        color: #999;
+    }
+    
+    .btn-login {
+        width: 100%;
+        padding: 16px;
+        background: linear-gradient(135deg, #4285f4 0%, #34a853 100%);
+        color: white;
+        border: none;
+        border-radius: 12px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-login:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(66, 133, 244, 0.4);
+    }
+    
+    .btn-login:active {
+        transform: translateY(0);
+    }
+    
+    .form-footer {
+        text-align: center;
+        margin-top: 24px;
+        padding-top: 24px;
+        border-top: 1px solid #eee;
+    }
+    
+    .form-footer a {
+        color: #4285f4;
+        text-decoration: none;
+        font-weight: 500;
+    }
+    
+    .form-footer a:hover {
+        text-decoration: underline;
+    }
+    
+    .remember-forgot {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 24px;
+    }
+    
+    .remember-me {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .remember-me input {
+        width: 18px;
+        height: 18px;
+        accent-color: #4285f4;
+    }
+    
+    .remember-me label {
+        margin: 0;
+        font-size: 14px;
+        color: #666;
+    }
+    
+    .forgot-link {
+        font-size: 14px;
+        color: #4285f4;
+        text-decoration: none;
+    }
+    
+    .forgot-link:hover {
+        text-decoration: underline;
+    }
+    
+    .alert {
+        padding: 14px 16px;
+        border-radius: 10px;
+        margin-bottom: 20px;
+        font-size: 14px;
+    }
+    
+    .alert-error {
+        background: #fdecea;
+        color: #c62828;
+        border: 1px solid #f5c6cb;
+    }
+    
+    .alert-success {
+        background: #e8f5e9;
+        color: #2e7d32;
+        border: 1px solid #c8e6c9;
+    }
+    
+    .alert-info {
+        background: #e3f2fd;
+        color: #1565c0;
+        border: 1px solid #bbdefb;
+    }
+    
+    .divider {
+        display: flex;
+        align-items: center;
+        margin: 24px 0;
+        color: #999;
+        font-size: 13px;
+    }
+    
+    .divider::before,
+    .divider::after {
+        content: '';
+        flex: 1;
+        height: 1px;
+        background: #e0e0e0;
+    }
+    
+    .divider span {
+        padding: 0 16px;
+    }
+    
+    .demo-accounts {
+        background: #f8f9fa;
+        border-radius: 12px;
+        padding: 16px;
+        margin-top: 20px;
+    }
+    
+    .demo-accounts h4 {
+        margin: 0 0 12px;
+        font-size: 13px;
+        color: #666;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .demo-account {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 8px 0;
+        font-size: 13px;
+        color: #333;
+    }
+    
+    .demo-account:not(:last-child) {
+        border-bottom: 1px solid #e0e0e0;
+    }
+    
+    .demo-account code {
+        background: #e3e3e3;
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-size: 12px;
+    }
+    
+    @media (max-width: 480px) {
+        .login-card {
+            border-radius: 0;
+        }
+        
+        .login-header {
+            padding: 30px 20px;
+        }
+        
+        .login-body {
+            padding: 30px 20px;
+        }
+    }
+</style>
+
+<div class="login-container">
+    <div class="login-card">
+        <div class="login-header">
+            <div class="logo">🚀</div>
+            <h1>GeminiCRM Pro</h1>
+            <p>AI-Powered Enterprise CRM</p>
+        </div>
+        
+        <div class="login-body">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }}">{{ message }}</div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+            
+            <form method="POST" action="{{ url_for('login') }}">
+                <div class="form-group">
+                    <label for="email">Email Address</label>
+                    <input type="email" id="email" name="email" class="form-control" 
+                           placeholder="you@company.com" required autofocus>
+                </div>
+                
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password" class="form-control" 
+                           placeholder="Enter your password" required>
+                </div>
+                
+                <div class="remember-forgot">
+                    <div class="remember-me">
+                        <input type="checkbox" id="remember" name="remember">
+                        <label for="remember">Remember me</label>
+                    </div>
+                    <a href="{{ url_for('forgot_password') }}" class="forgot-link">Forgot password?</a>
+                </div>
+                
+                <button type="submit" class="btn-login">
+                    Sign In
+                </button>
+            </form>
+            
+            <div class="form-footer">
+                Don't have an account? <a href="{{ url_for('register') }}">Create one</a>
+            </div>
+            
+            <div class="demo-accounts">
+                <h4>Demo Accounts</h4>
+                <div class="demo-account">
+                    <span>Admin User</span>
+                    <code>admin@geminicrm.com</code>
+                </div>
+                <div class="demo-account">
+                    <span>Demo User</span>
+                    <code>demo@geminicrm.com</code>
+                </div>
+                <div class="demo-account">
+                    <span>Password</span>
+                    <code>admin123 / demo123</code>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block sidebar %}{% endblock %}
+{% block header %}{% endblock %}

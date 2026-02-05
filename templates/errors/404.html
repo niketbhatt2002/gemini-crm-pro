@@ -1,0 +1,18 @@
+{% extends "auth_base.html" %}
+
+{% block title %}404 - Page Not Found{% endblock %}
+
+{% block content %}
+<div class="auth-container" style="text-align: center; padding: 60px 40px;">
+    <div class="auth-logo" style="background: #ff9800; margin-bottom: 24px;">
+        <span class="material-icons-round" style="font-size: 36px; color: white;">search_off</span>
+    </div>
+    <h1 style="font-size: 72px; color: #ff9800; margin: 0;">404</h1>
+    <h2 style="font-size: 24px; margin: 16px 0; color: #202124;">Page Not Found</h2>
+    <p style="color: #5f6368; margin-bottom: 32px;">The page you're looking for doesn't exist or has been moved.</p>
+    <a href="/" class="btn-auth btn-auth-primary" style="display: inline-flex; max-width: 200px; margin: 0 auto; text-decoration: none;">
+        <span class="material-icons-round">home</span>
+        Go Home
+    </a>
+</div>
+{% endblock %}

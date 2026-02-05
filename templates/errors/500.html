@@ -1,0 +1,18 @@
+{% extends "auth_base.html" %}
+
+{% block title %}500 - Server Error{% endblock %}
+
+{% block content %}
+<div class="auth-container" style="text-align: center; padding: 60px 40px;">
+    <div class="auth-logo" style="background: #ea4335; margin-bottom: 24px;">
+        <span class="material-icons-round" style="font-size: 36px; color: white;">error_outline</span>
+    </div>
+    <h1 style="font-size: 72px; color: #ea4335; margin: 0;">500</h1>
+    <h2 style="font-size: 24px; margin: 16px 0; color: #202124;">Server Error</h2>
+    <p style="color: #5f6368; margin-bottom: 32px;">Something went wrong on our end. Please try again later.</p>
+    <a href="/" class="btn-auth btn-auth-primary" style="display: inline-flex; max-width: 200px; margin: 0 auto; text-decoration: none;">
+        <span class="material-icons-round">home</span>
+        Go Home
+    </a>
+</div>
+{% endblock %}
