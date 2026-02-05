@@ -100,6 +100,13 @@
                 
                 <div class="nav-divider"></div>
                 
+                <a href="/profile" class="nav-item {% if page == 'profile' %}active{% endif %}">
+                    <span class="material-icons-outlined">account_circle</span>
+                    <span class="nav-label">My Profile</span>
+                </a>
+                
+                <div class="nav-divider"></div>
+                
                 <div class="nav-section-title">AI Tools</div>
                 <button class="nav-item" onclick="openAIChat()">
                     <span class="material-icons-outlined">auto_awesome</span>
@@ -137,12 +144,14 @@
                     <button class="btn btn-icon btn-ghost" onclick="openAIChat()" title="AI Assistant">
                         <span class="material-icons-round">auto_awesome</span>
                     </button>
-                    <button class="btn btn-icon btn-ghost" title="Notifications">
-                        <span class="material-icons-outlined">notifications</span>
-                        <span class="notification-badge">3</span>
-                    </button>
-                    <div class="user-avatar">
-                        <span>JD</span>
+                    <!-- Notification Bell -->
+                    <div class="notification-bell" onclick="toggleNotificationPanel()">
+                        <i class="material-icons">notifications</i>
+                        <span class="notification-badge" id="notificationBadge">0</span>
+                    </div>
+                    <!-- User Avatar (Click for Profile) -->
+                    <div class="user-avatar" onclick="window.location.href='/profile'" style="cursor: pointer;" title="My Profile">
+                        <span id="userInitials">JD</span>
                     </div>
                 </div>
             </header>
@@ -201,6 +210,9 @@
 
     <!-- Toast Container -->
     <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Notification Panel (included from notifications.html) -->
+    {% include "notifications.html" %}
 
     <!-- Scripts -->
     <script src="{{ url_for('static', filename='js/app.js') }}"></script>

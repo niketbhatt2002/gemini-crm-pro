@@ -10,6 +10,10 @@ from models.database import (
     DB, get_all, get_by_id, create, update, delete, search, init_sample_data,
     Contact, Lead, Deal, Task, Activity
 )
+from models.user_profile import (
+    notification_manager, profile_manager, activity_logger,
+    init_default_user_profile, NotificationType, NotificationPriority
+)
 from services import gemini_service
 
 # Initialize Flask app
@@ -26,6 +30,13 @@ try:
         init_sample_data()
 except Exception as e:
     print(f"Warning: Could not initialize sample data: {e}")
+
+# Initialize default user profile
+try:
+    if not profile_manager.get_profile('user_1'):
+        init_default_user_profile('user_1')
+except Exception as e:
+    print(f"Warning: Could not initialize user profile: {e}")
 
 # ==================== PAGE ROUTES ====================
 
@@ -63,6 +74,11 @@ def tasks_page():
 def analytics_page():
     """Analytics dashboard"""
     return render_template('analytics.html', page='analytics')
+
+@app.route('/profile')
+def profile_page():
+    """User profile page"""
+    return render_template('profile.html', page='profile')
 
 
 # ==================== ERROR HANDLERS ====================
@@ -275,8 +291,21 @@ def api_deals_get(deal_id):
 def api_deals_update(deal_id):
     """Update deal"""
     data = request.json
+    user_id = data.get('user_id', 'user_1')
     deal = update('deals', deal_id, data)
     if deal:
+        # Send notification for deal update
+        notify_user(
+            user_id,
+            NotificationType.DEAL_UPDATED.value,
+            f"Deal Updated: {deal.get('name', 'Untitled')}",
+            f"Deal value: ${deal.get('value', 0):,} - Stage: {deal.get('stage', 'Unknown')}",
+            priority=NotificationPriority.NORMAL.value,
+            icon='🤝',
+            color='primary',
+            data={'deal_id': deal_id, 'deal_value': deal.get('value')},
+            action_url=f'/deals?id={deal_id}'
+        )
         return jsonify({"success": True, "deal": deal})
     return jsonify({"error": "Deal not found"}), 404
 
@@ -291,7 +320,9 @@ def api_deals_delete(deal_id):
 def api_deals_update_stage(deal_id):
     """Update deal stage (for drag & drop)"""
     data = request.json
+    user_id = data.get('user_id', 'user_1')
     new_stage = data.get('stage')
+    old_stage = data.get('old_stage', 'unknown')
     
     # Update probability based on stage
     probabilities = {
@@ -305,6 +336,18 @@ def api_deals_update_stage(deal_id):
     
     deal = update('deals', deal_id, updates)
     if deal:
+        # Send notification for deal stage change
+        notify_user(
+            user_id,
+            NotificationType.DEAL_STAGE_CHANGE.value,
+            f"Deal Stage Changed: {deal.get('name', 'Untitled')}",
+            f"Moved from {old_stage.replace('_', ' ').title()} to {new_stage.replace('_', ' ').title()}",
+            priority=NotificationPriority.HIGH.value,
+            icon='📈',
+            color='warning',
+            data={'deal_id': deal_id, 'old_stage': old_stage, 'new_stage': new_stage},
+            action_url=f'/deals?id={deal_id}'
+        )
         return jsonify({"success": True, "deal": deal})
     return jsonify({"error": "Deal not found"}), 404
 
@@ -327,6 +370,22 @@ def api_tasks_create():
     """Create task"""
     data = request.json
     task = create('tasks', data, Task)
+    
+    # Send notification if task is assigned to someone
+    if task and data.get('assigned_to'):
+        assigned_to = data.get('assigned_to')
+        notify_user(
+            assigned_to,
+            NotificationType.TASK_ASSIGNED.value,
+            f"New Task: {task.get('title', 'Untitled')}",
+            f"Task assigned by {data.get('assigned_by', 'Manager')} - Due: {task.get('due_date', 'No date')}",
+            priority=NotificationPriority.HIGH.value,
+            icon='✓',
+            color='info',
+            data={'task_id': task.get('id'), 'assigned_by': data.get('assigned_by')},
+            action_url=f'/tasks?id={task.get("id")}'
+        )
+    
     return jsonify({"success": True, "task": task})
 
 @app.route('/api/tasks/<task_id>', methods=['GET'])
@@ -362,6 +421,19 @@ def api_tasks_complete(task_id):
         'completed_at': datetime.now().isoformat()
     })
     if task:
+        # Notify the task creator or manager
+        assigned_by = task.get('assigned_by', 'user_1')
+        notify_user(
+            assigned_by,
+            NotificationType.TASK_ASSIGNED.value,
+            f"Task Completed: {task.get('title', 'Untitled')}",
+            f"Task completed by {task.get('assigned_to', 'Team member')}",
+            priority=NotificationPriority.NORMAL.value,
+            icon='✓',
+            color='success',
+            data={'task_id': task_id},
+            action_url=f'/tasks?id={task_id}'
+        )
         return jsonify({"success": True, "task": task})
     return jsonify({"error": "Task not found"}), 404
 
@@ -402,6 +474,7 @@ def api_ai_score_lead():
     """AI Lead Scoring"""
     data = request.json
     lead_id = data.get('lead_id')
+    user_id = data.get('user_id', 'user_1')
     
     if lead_id:
         lead = get_by_id('leads', lead_id)
@@ -420,6 +493,19 @@ def api_ai_score_lead():
                 'ai_score': analysis.get('score'),
                 'ai_insights': analysis.get('recommended_actions', [])
             })
+            
+            # Create notification for lead scoring
+            notify_user(
+                user_id,
+                NotificationType.LEAD_SCORED.value,
+                f"Lead {lead.get('name', 'Unknown')} Scored",
+                f"Score: {analysis.get('score')}/100 - Grade: {analysis.get('grade')}",
+                priority=NotificationPriority.HIGH.value,
+                icon='⭐',
+                color='warning',
+                data={'lead_id': lead_id, 'score': analysis.get('score')},
+                action_url=f'/leads?id={lead_id}'
+            )
     
     return jsonify(result)
 
@@ -572,7 +658,263 @@ def api_global_search():
     return jsonify({"results": results[:20]})
 
 
-# ==================== RUN ====================
+# ==================== API: USER PROFILE ====================
+
+@app.route('/api/profile', methods=['GET'])
+def api_get_profile():
+    """Get current user profile"""
+    user_id = request.args.get('user_id', 'user_1')
+    profile = profile_manager.get_profile(user_id)
+    
+    if not profile:
+        return jsonify({"error": "Profile not found"}), 404
+    
+    return jsonify(profile.to_dict())
+
+
+@app.route('/api/profile', methods=['PUT'])
+def api_update_profile():
+    """Update user profile"""
+    user_id = request.json.get('user_id', 'user_1')
+    updates = {k: v for k, v in request.json.items() if k != 'user_id'}
+    
+    profile = profile_manager.update_profile(user_id, updates)
+    if not profile:
+        return jsonify({"error": "Profile not found"}), 404
+    
+    # Log activity
+    activity_logger.log_activity(user_id, {
+        'action': 'update',
+        'resource_type': 'profile',
+        'resource_id': user_id,
+        'description': f"Updated profile",
+    })
+    
+    return jsonify(profile.to_dict())
+
+
+@app.route('/api/profile/settings', methods=['GET'])
+def api_get_settings():
+    """Get user settings and preferences"""
+    user_id = request.args.get('user_id', 'user_1')
+    profile = profile_manager.get_profile(user_id)
+    
+    if not profile:
+        return jsonify({"error": "Profile not found"}), 404
+    
+    return jsonify({
+        "language": profile.language,
+        "timezone": profile.timezone,
+        "date_format": profile.date_format,
+        "time_format": profile.time_format,
+        "currency": profile.currency,
+        "theme": profile.theme,
+        "notification_preferences": profile.notification_preferences,
+    })
+
+
+@app.route('/api/profile/settings', methods=['PUT'])
+def api_update_settings():
+    """Update user settings"""
+    user_id = request.json.get('user_id', 'user_1')
+    settings = {k: v for k, v in request.json.items() if k != 'user_id'}
+    
+    profile = profile_manager.update_profile(user_id, settings)
+    if not profile:
+        return jsonify({"error": "Profile not found"}), 404
+    
+    return jsonify({"success": True})
+
+
+@app.route('/api/profile/status', methods=['POST'])
+def api_set_status():
+    """Set user status (active, away, busy, offline)"""
+    user_id = request.json.get('user_id', 'user_1')
+    status = request.json.get('status', 'active')
+    
+    profile = profile_manager.set_status(user_id, status)
+    if not profile:
+        return jsonify({"error": "Profile not found"}), 404
+    
+    return jsonify({"status": profile.status})
+
+
+@app.route('/api/profile/<user_id>/team', methods=['GET'])
+def api_get_team(user_id):
+    """Get team members and stats"""
+    profile = profile_manager.get_profile(user_id)
+    if not profile:
+        return jsonify({"error": "Profile not found"}), 404
+    
+    team_id = profile.team_id
+    members = profile_manager.get_team_members(team_id)
+    stats = profile_manager.get_team_statistics(team_id)
+    
+    return jsonify({
+        "team_id": team_id,
+        "members": [m.to_dict() for m in members],
+        "statistics": stats,
+    })
+
+
+# ==================== API: NOTIFICATIONS ====================
+
+@app.route('/api/notifications', methods=['GET'])
+def api_get_notifications():
+    """Get user notifications"""
+    user_id = request.args.get('user_id', 'user_1')
+    unread_only = request.args.get('unread_only', 'false').lower() == 'true'
+    limit = int(request.args.get('limit', 20))
+    
+    notifications = notification_manager.get_notifications(user_id, unread_only, limit)
+    
+    return jsonify({
+        "notifications": [n.to_dict() for n in notifications],
+        "unread_count": notification_manager.get_unread_count(user_id),
+    })
+
+
+@app.route('/api/notifications/unread-count', methods=['GET'])
+def api_unread_count():
+    """Get count of unread notifications"""
+    user_id = request.args.get('user_id', 'user_1')
+    count = notification_manager.get_unread_count(user_id)
+    
+    return jsonify({"unread_count": count})
+
+
+@app.route('/api/notifications/<notification_id>/read', methods=['POST'])
+def api_mark_read(notification_id):
+    """Mark notification as read"""
+    success = notification_manager.mark_notification_read(notification_id)
+    
+    if not success:
+        return jsonify({"error": "Notification not found"}), 404
+    
+    return jsonify({"success": True})
+
+
+@app.route('/api/notifications/mark-all-read', methods=['POST'])
+def api_mark_all_read():
+    """Mark all notifications as read"""
+    user_id = request.json.get('user_id', 'user_1')
+    notification_manager.mark_all_read(user_id)
+    
+    return jsonify({"success": True})
+
+
+@app.route('/api/notifications/<notification_id>', methods=['DELETE'])
+def api_delete_notification(notification_id):
+    """Delete a notification"""
+    notification_manager.delete_notification(notification_id)
+    return jsonify({"success": True})
+
+
+@app.route('/api/notifications/<notification_id>/pin', methods=['POST'])
+def api_pin_notification(notification_id):
+    """Pin a notification"""
+    action = request.json.get('action', 'pin')
+    
+    if action == 'pin':
+        success = notification_manager.pin_notification(notification_id)
+    else:
+        success = notification_manager.unpin_notification(notification_id)
+    
+    if not success:
+        return jsonify({"error": "Notification not found"}), 404
+    
+    return jsonify({"success": True})
+
+
+@app.route('/api/notifications/preferences', methods=['GET'])
+def api_get_notification_prefs():
+    """Get notification preferences"""
+    user_id = request.args.get('user_id', 'user_1')
+    profile = profile_manager.get_profile(user_id)
+    
+    if not profile:
+        return jsonify({"error": "Profile not found"}), 404
+    
+    return jsonify(profile.notification_preferences)
+
+
+@app.route('/api/notifications/preferences', methods=['PUT'])
+def api_update_notification_prefs():
+    """Update notification preferences"""
+    user_id = request.json.get('user_id', 'user_1')
+    preferences = {k: v for k, v in request.json.items() if k != 'user_id'}
+    
+    profile = profile_manager.update_notification_preferences(user_id, preferences)
+    if not profile:
+        return jsonify({"error": "Profile not found"}), 404
+    
+    return jsonify(profile.notification_preferences)
+
+
+# ==================== API: ACTIVITY LOG ====================
+
+@app.route('/api/activity/user/<user_id>', methods=['GET'])
+def api_get_user_activity(user_id):
+    """Get user activity log"""
+    limit = int(request.args.get('limit', 50))
+    logs = activity_logger.get_user_activity(user_id, limit)
+    
+    return jsonify({
+        "activities": [l.to_dict() for l in logs],
+        "total": len(logs),
+    })
+
+
+@app.route('/api/activity/resource/<resource_type>/<resource_id>', methods=['GET'])
+def api_get_resource_activity(resource_type, resource_id):
+    """Get activity for a specific resource"""
+    activities = activity_logger.get_activity_for_resource(resource_type, resource_id)
+    
+    return jsonify({
+        "activities": [a.to_dict() for a in activities],
+        "total": len(activities),
+    })
+
+
+# ==================== HELPER: CREATE NOTIFICATIONS ====================
+
+def notify_user(user_id, notification_type, title, message, **kwargs):
+    """Helper to create and send notification"""
+    notification_manager.create_notification(user_id, {
+        'type': notification_type,
+        'title': title,
+        'message': message,
+        'priority': kwargs.get('priority', NotificationPriority.NORMAL.value),
+        'icon': kwargs.get('icon', 'info'),
+        'color': kwargs.get('color', 'blue'),
+        'data': kwargs.get('data', {}),
+        'action_url': kwargs.get('action_url', ''),
+    })
+
+
+# ==================== API: SYNTHETIC NOTIFICATIONS (For Testing) ====================
+
+@app.route('/api/notifications/test', methods=['POST'])
+def api_test_notification():
+    """Create test notification (for demo/testing)"""
+    user_id = request.json.get('user_id', 'user_1')
+    
+    # Create sample notification
+    notify_user(
+        user_id,
+        NotificationType.DEAL_UPDATED.value,
+        "Deal Updated",
+        "Acme Corp deal has been moved to Negotiation stage",
+        icon='trending_up',
+        color='green',
+        data={'deal_id': 'deal_123'},
+        action_url='/deals/deal_123'
+    )
+    
+    return jsonify({"success": True, "message": "Test notification created"})
+
+
+
 
 if __name__ == '__main__':
     app.run(debug=False, host='0.0.0.0', port=5000)

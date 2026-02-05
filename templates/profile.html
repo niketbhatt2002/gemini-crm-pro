@@ -1,0 +1,579 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid p-4">
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="mb-0">My Profile</h1>
+            <p class="text-muted mb-0">Manage your account and preferences</p>
+        </div>
+        <div class="btn-group">
+            <button class="btn btn-outline-secondary" onclick="editProfile()" title="Edit Profile">
+                <i class="material-icons">edit</i> Edit
+            </button>
+            <button class="btn btn-outline-secondary" onclick="viewSettings()" title="Settings">
+                <i class="material-icons">settings</i> Settings
+            </button>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Left Column: Profile Card -->
+        <div class="col-lg-4 mb-4">
+            <div class="card shadow-sm">
+                <div class="card-body text-center">
+                    <!-- Avatar -->
+                    <div class="mb-3">
+                        <div id="profileAvatar" class="avatar-large rounded-circle mx-auto mb-3" 
+                             style="width: 100px; height: 100px; font-size: 32px; line-height: 100px;">
+                            JD
+                        </div>
+                    </div>
+
+                    <!-- Profile Info -->
+                    <h3 id="profileName" class="mb-1">John Doe</h3>
+                    <p id="profileTitle" class="text-muted mb-3">Sales Manager</p>
+                    
+                    <!-- Status Badge -->
+                    <div class="mb-3">
+                        <span id="statusBadge" class="badge badge-success badge-pill px-3 py-2">
+                            <i class="material-icons">circle</i> Active
+                        </span>
+                    </div>
+
+                    <hr>
+
+                    <!-- Contact Info -->
+                    <div class="text-left mb-3">
+                        <p class="mb-2"><strong>Email</strong><br><span id="profileEmail">john@example.com</span></p>
+                        <p class="mb-2"><strong>Phone</strong><br><span id="profilePhone">+1-555-0100</span></p>
+                        <p class="mb-2"><strong>Department</strong><br><span id="profileDept">Sales</span></p>
+                        <p class="mb-2"><strong>Team ID</strong><br><span id="profileTeam">team_1</span></p>
+                    </div>
+
+                    <hr>
+
+                    <!-- Action Buttons -->
+                    <button class="btn btn-sm btn-outline-primary btn-block mb-2" onclick="changePassword()">
+                        <i class="material-icons">lock</i> Change Password
+                    </button>
+                    <button class="btn btn-sm btn-outline-danger btn-block" onclick="logout()">
+                        <i class="material-icons">logout</i> Logout
+                    </button>
+                </div>
+            </div>
+
+            <!-- Team Card -->
+            <div class="card shadow-sm mt-3">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">Team</h5>
+                </div>
+                <div class="card-body">
+                    <div id="teamStats">
+                        <p class="mb-2"><strong>Members:</strong> <span>5</span></p>
+                        <p class="mb-2"><strong>Total Deals:</strong> <span>42</span></p>
+                        <p class="mb-2"><strong>Total Revenue:</strong> <span>$2.5M</span></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column: Statistics & Settings -->
+        <div class="col-lg-8">
+            <!-- Statistics Cards -->
+            <div class="row mb-4">
+                <div class="col-sm-6 mb-3">
+                    <div class="card shadow-sm">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <p class="text-muted mb-1">Total Deals</p>
+                                    <h2 id="statDeals" class="mb-0">28</h2>
+                                </div>
+                                <i class="material-icons text-primary" style="font-size: 32px;">handshake</i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-6 mb-3">
+                    <div class="card shadow-sm">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <p class="text-muted mb-1">Closed Deals</p>
+                                    <h2 id="statClosed" class="mb-0">18</h2>
+                                </div>
+                                <i class="material-icons text-success" style="font-size: 32px;">check_circle</i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-6 mb-3">
+                    <div class="card shadow-sm">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <p class="text-muted mb-1">Total Contacts</p>
+                                    <h2 id="statContacts" class="mb-0">156</h2>
+                                </div>
+                                <i class="material-icons text-info" style="font-size: 32px;">people</i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-6 mb-3">
+                    <div class="card shadow-sm">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <p class="text-muted mb-1">Total Revenue</p>
+                                    <h2 id="statRevenue" class="mb-0">$1.2M</h2>
+                                </div>
+                                <i class="material-icons text-warning" style="font-size: 32px;">trending_up</i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Preferences Tabs -->
+            <div class="card shadow-sm">
+                <ul class="nav nav-tabs card-header-tabs" role="tablist">
+                    <li class="nav-item">
+                        <a class="nav-link active" data-toggle="tab" href="#tabPreferences">
+                            <i class="material-icons">settings</i> Preferences
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" data-toggle="tab" href="#tabNotifications">
+                            <i class="material-icons">notifications</i> Notifications
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" data-toggle="tab" href="#tabActivity">
+                            <i class="material-icons">history</i> Activity
+                        </a>
+                    </li>
+                </ul>
+
+                <div class="tab-content p-4">
+                    <!-- Preferences Tab -->
+                    <div class="tab-pane fade show active" id="tabPreferences">
+                        <div class="form-group">
+                            <label for="prefLanguage"><strong>Language</strong></label>
+                            <select id="prefLanguage" class="form-control" onchange="saveSetting('language', this.value)">
+                                <option value="en" selected>English</option>
+                                <option value="es">Spanish</option>
+                                <option value="fr">French</option>
+                                <option value="de">German</option>
+                                <option value="zh">Chinese</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="prefTimezone"><strong>Timezone</strong></label>
+                            <select id="prefTimezone" class="form-control" onchange="saveSetting('timezone', this.value)">
+                                <option value="UTC">UTC</option>
+                                <option value="America/New_York">Eastern Time</option>
+                                <option value="America/Chicago">Central Time</option>
+                                <option value="America/Denver">Mountain Time</option>
+                                <option value="America/Los_Angeles">Pacific Time</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="prefTheme"><strong>Theme</strong></label>
+                            <select id="prefTheme" class="form-control" onchange="saveSetting('theme', this.value)">
+                                <option value="light" selected>Light</option>
+                                <option value="dark">Dark</option>
+                                <option value="auto">Auto</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="prefCurrency"><strong>Currency</strong></label>
+                            <select id="prefCurrency" class="form-control" onchange="saveSetting('currency', this.value)">
+                                <option value="USD" selected>USD ($)</option>
+                                <option value="EUR">EUR (€)</option>
+                                <option value="GBP">GBP (£)</option>
+                                <option value="JPY">JPY (¥)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Notifications Tab -->
+                    <div class="tab-pane fade" id="tabNotifications">
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" id="notifDealUpdate" checked onchange="updateNotifPref('email_on_deal_update', this.checked)">
+                            <label class="form-check-label" for="notifDealUpdate">
+                                <strong>Email on Deal Update</strong>
+                                <p class="text-muted small mb-0">Get notified when deals are updated</p>
+                            </label>
+                        </div>
+
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" id="notifTaskAssign" checked onchange="updateNotifPref('email_on_task_assign', this.checked)">
+                            <label class="form-check-label" for="notifTaskAssign">
+                                <strong>Email on Task Assignment</strong>
+                                <p class="text-muted small mb-0">Get notified when tasks are assigned to you</p>
+                            </label>
+                        </div>
+
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" id="notifMention" checked onchange="updateNotifPref('email_on_mention', this.checked)">
+                            <label class="form-check-label" for="notifMention">
+                                <strong>Email on Mention</strong>
+                                <p class="text-muted small mb-0">Get notified when someone mentions you</p>
+                            </label>
+                        </div>
+
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" id="notifActivity" onchange="updateNotifPref('email_on_activity', this.checked)">
+                            <label class="form-check-label" for="notifActivity">
+                                <strong>Email on Activity</strong>
+                                <p class="text-muted small mb-0">Get notified on all CRM activities</p>
+                            </label>
+                        </div>
+
+                        <hr>
+
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" id="notifPush" checked onchange="updateNotifPref('push_enabled', this.checked)">
+                            <label class="form-check-label" for="notifPush">
+                                <strong>Push Notifications</strong>
+                                <p class="text-muted small mb-0">Enable browser push notifications</p>
+                            </label>
+                        </div>
+
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" id="notifQuietHours" onchange="updateNotifPref('quiet_hours_enabled', this.checked)">
+                            <label class="form-check-label" for="notifQuietHours">
+                                <strong>Quiet Hours</strong>
+                                <p class="text-muted small mb-0">Enable quiet hours (no notifications during specific times)</p>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Activity Tab -->
+                    <div class="tab-pane fade" id="tabActivity">
+                        <div id="activityList" class="activity-timeline">
+                            <!-- Activity items will load here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Profile Modal -->
+<div class="modal fade" id="modalEditProfile" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Edit Profile</h5>
+                <button type="button" class="close" data-dismiss="modal">
+                    <span>&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="formEditProfile">
+                    <div class="form-group">
+                        <label for="editFirstName">First Name</label>
+                        <input type="text" class="form-control" id="editFirstName" placeholder="First Name">
+                    </div>
+                    <div class="form-group">
+                        <label for="editLastName">Last Name</label>
+                        <input type="text" class="form-control" id="editLastName" placeholder="Last Name">
+                    </div>
+                    <div class="form-group">
+                        <label for="editEmail">Email</label>
+                        <input type="email" class="form-control" id="editEmail" placeholder="Email">
+                    </div>
+                    <div class="form-group">
+                        <label for="editPhone">Phone</label>
+                        <input type="tel" class="form-control" id="editPhone" placeholder="Phone">
+                    </div>
+                    <div class="form-group">
+                        <label for="editBio">Bio</label>
+                        <textarea class="form-control" id="editBio" rows="3" placeholder="Tell us about yourself"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="saveProfileChanges()">Save Changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.avatar-large {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    font-weight: bold;
+}
+
+.activity-timeline {
+    position: relative;
+    padding: 20px 0;
+}
+
+.activity-item {
+    display: flex;
+    margin-bottom: 20px;
+    position: relative;
+}
+
+.activity-item::before {
+    content: '';
+    position: absolute;
+    left: 19px;
+    top: 40px;
+    width: 2px;
+    height: 30px;
+    background: #e9ecef;
+}
+
+.activity-item:last-child::before {
+    display: none;
+}
+
+.activity-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #f1f3f5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 15px;
+    flex-shrink: 0;
+    position: relative;
+    z-index: 1;
+}
+
+.activity-content {
+    flex: 1;
+}
+
+.activity-content strong {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 2px;
+}
+
+.activity-content .time {
+    font-size: 12px;
+    color: #999;
+}
+</style>
+
+<script>
+// Load profile on page load
+$(document).ready(function() {
+    loadProfile();
+    loadActivityLog();
+});
+
+function loadProfile() {
+    $.ajax({
+        url: '/api/profile?user_id=user_1',
+        type: 'GET',
+        success: function(data) {
+            $('#profileName').text(data.full_name);
+            $('#profileTitle').text(data.title);
+            $('#profileEmail').text(data.email);
+            $('#profilePhone').text(data.phone);
+            $('#profileDept').text(data.department);
+            $('#profileTeam').text(data.team_id);
+            
+            // Update stats
+            $('#statDeals').text(data.total_deals);
+            $('#statClosed').text(data.closed_deals);
+            $('#statContacts').text(data.total_contacts);
+            $('#statRevenue').text('$' + (data.total_revenue / 1000000).toFixed(1) + 'M');
+            
+            // Update preferences
+            $('#prefLanguage').val(data.language);
+            $('#prefTimezone').val(data.timezone);
+            $('#prefTheme').val(data.theme);
+            $('#prefCurrency').val(data.currency);
+            
+            // Update notification preferences
+            const prefs = data.notification_preferences;
+            $('#notifDealUpdate').prop('checked', prefs.email_on_deal_update);
+            $('#notifTaskAssign').prop('checked', prefs.email_on_task_assign);
+            $('#notifMention').prop('checked', prefs.email_on_mention);
+            $('#notifActivity').prop('checked', prefs.email_on_activity);
+            $('#notifPush').prop('checked', prefs.push_enabled);
+            $('#notifQuietHours').prop('checked', prefs.quiet_hours_enabled);
+            
+            // Update avatar
+            const initials = data.initials;
+            $('#profileAvatar').text(initials);
+            
+            // Update status
+            updateStatusDisplay(data.status);
+        },
+        error: function() {
+            showAlert('Error loading profile', 'danger');
+        }
+    });
+}
+
+function loadActivityLog() {
+    $.ajax({
+        url: '/api/activity/user/user_1',
+        type: 'GET',
+        data: { limit: 15 },
+        success: function(data) {
+            const list = $('#activityList');
+            list.empty();
+            
+            if (data.activities.length === 0) {
+                list.html('<p class="text-muted">No activity yet</p>');
+                return;
+            }
+            
+            data.activities.forEach(activity => {
+                const timeAgo = new Date(activity.created_at).toLocaleString();
+                const icon = getActivityIcon(activity.action);
+                
+                const html = `
+                    <div class="activity-item">
+                        <div class="activity-icon">${icon}</div>
+                        <div class="activity-content">
+                            <strong>${activity.action.toUpperCase()}</strong>
+                            ${activity.description}
+                            <div class="time">${timeAgo}</div>
+                        </div>
+                    </div>
+                `;
+                list.append(html);
+            });
+        }
+    });
+}
+
+function editProfile() {
+    $('#editFirstName').val($('#profileName').text().split(' ')[0]);
+    $('#editLastName').val($('#profileName').text().split(' ')[1] || '');
+    $('#editEmail').val($('#profileEmail').text());
+    $('#editPhone').val($('#profilePhone').text());
+    $('#modalEditProfile').modal('show');
+}
+
+function saveProfileChanges() {
+    const updates = {
+        user_id: 'user_1',
+        first_name: $('#editFirstName').val(),
+        last_name: $('#editLastName').val(),
+        email: $('#editEmail').val(),
+        phone: $('#editPhone').val(),
+        bio: $('#editBio').val(),
+    };
+    
+    $.ajax({
+        url: '/api/profile',
+        type: 'PUT',
+        contentType: 'application/json',
+        data: JSON.stringify(updates),
+        success: function() {
+            $('#modalEditProfile').modal('hide');
+            loadProfile();
+            showAlert('Profile updated successfully', 'success');
+        },
+        error: function() {
+            showAlert('Error updating profile', 'danger');
+        }
+    });
+}
+
+function saveSetting(key, value) {
+    const update = {
+        user_id: 'user_1',
+        [key]: value
+    };
+    
+    $.ajax({
+        url: '/api/profile/settings',
+        type: 'PUT',
+        contentType: 'application/json',
+        data: JSON.stringify(update),
+        success: function() {
+            showAlert('Setting saved', 'success');
+        },
+        error: function() {
+            showAlert('Error saving setting', 'danger');
+        }
+    });
+}
+
+function updateNotifPref(key, value) {
+    const update = {
+        user_id: 'user_1',
+        [key]: value
+    };
+    
+    $.ajax({
+        url: '/api/notifications/preferences',
+        type: 'PUT',
+        contentType: 'application/json',
+        data: JSON.stringify(update),
+        success: function() {
+            console.log('Notification preference updated');
+        },
+        error: function() {
+            showAlert('Error updating notification preference', 'danger');
+        }
+    });
+}
+
+function updateStatusDisplay(status) {
+    const badge = $('#statusBadge');
+    const statusMap = {
+        'active': { class: 'badge-success', text: 'Active', icon: 'circle' },
+        'away': { class: 'badge-warning', text: 'Away', icon: 'brightness_4' },
+        'busy': { class: 'badge-danger', text: 'Busy', icon: 'circle' },
+        'offline': { class: 'badge-secondary', text: 'Offline', icon: 'radio_button_unchecked' }
+    };
+    
+    const info = statusMap[status] || statusMap['offline'];
+    badge.removeClass('badge-success badge-warning badge-danger badge-secondary');
+    badge.addClass(info.class);
+    badge.html(`<i class="material-icons">${info.icon}</i> ${info.text}`);
+}
+
+function viewSettings() {
+    $('[href="#tabPreferences"]').tab('show');
+}
+
+function changePassword() {
+    alert('Change password feature coming soon');
+}
+
+function logout() {
+    if (confirm('Are you sure you want to logout?')) {
+        window.location.href = '/';
+    }
+}
+
+function getActivityIcon(action) {
+    const iconMap = {
+        'create': '➕',
+        'update': '✏️',
+        'delete': '🗑️',
+        'view': '👁️',
+        'comment': '💬',
+        'share': '📤'
+    };
+    return iconMap[action] || '📝';
+}
+</script>
+{% endblock %}

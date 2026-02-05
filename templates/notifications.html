@@ -1,0 +1,587 @@
+<!-- Notifications Panel (Add to base.html navbar) -->
+<div class="notification-panel" id="notificationPanel">
+    <div class="notification-header">
+        <h6 class="mb-0">Notifications</h6>
+        <button class="btn-close" onclick="toggleNotificationPanel()" aria-label="Close"></button>
+    </div>
+    
+    <div class="notification-filter mb-3">
+        <div class="btn-group btn-group-sm w-100" role="group">
+            <button type="button" class="btn btn-outline-secondary active" onclick="filterNotifications('all')">
+                All
+            </button>
+            <button type="button" class="btn btn-outline-secondary" onclick="filterNotifications('unread')">
+                Unread
+            </button>
+            <button type="button" class="btn btn-outline-secondary" onclick="filterNotifications('pinned')">
+                Pinned
+            </button>
+        </div>
+    </div>
+    
+    <div class="notification-list" id="notificationList">
+        <!-- Notifications will load here -->
+        <div class="text-center p-4 text-muted">
+            <i class="material-icons">notifications_none</i>
+            <p>No notifications</p>
+        </div>
+    </div>
+    
+    <div class="notification-footer border-top pt-2">
+        <button class="btn btn-sm btn-link w-100" onclick="markAllAsRead()">
+            Mark all as read
+        </button>
+        <button class="btn btn-sm btn-link w-100 text-danger" onclick="clearAllNotifications()">
+            Clear all
+        </button>
+    </div>
+</div>
+
+<!-- Notification Bell Icon (Add to navbar) -->
+<div class="notification-bell" onclick="toggleNotificationPanel()">
+    <i class="material-icons">notifications</i>
+    <span class="notification-badge" id="notificationBadge">0</span>
+</div>
+
+<!-- Toast Container -->
+<div class="toast-container" id="toastContainer"></div>
+
+<style>
+/* Notification Bell Icon */
+.notification-bell {
+    position: relative;
+    cursor: pointer;
+    padding: 8px 12px;
+    font-size: 24px;
+    color: #666;
+    transition: color 0.3s ease;
+}
+
+.notification-bell:hover {
+    color: #333;
+}
+
+.notification-badge {
+    position: absolute;
+    top: 0;
+    right: 0;
+    background: #dc3545;
+    color: white;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: bold;
+    min-width: 24px;
+}
+
+.notification-badge.hidden {
+    display: none;
+}
+
+/* Notification Panel */
+.notification-panel {
+    position: fixed;
+    right: -350px;
+    top: 0;
+    width: 350px;
+    height: 100vh;
+    background: white;
+    box-shadow: -2px 0 8px rgba(0,0,0,0.1);
+    z-index: 1040;
+    display: flex;
+    flex-direction: column;
+    transition: right 0.3s ease;
+}
+
+.notification-panel.open {
+    right: 0;
+}
+
+.notification-header {
+    padding: 16px;
+    border-bottom: 1px solid #e9ecef;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.notification-header h6 {
+    margin: 0;
+    font-weight: 600;
+}
+
+.btn-close {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: #666;
+    padding: 0;
+    width: 24px;
+    height: 24px;
+}
+
+.notification-filter {
+    padding: 12px 16px;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.notification-list {
+    flex: 1;
+    overflow-y: auto;
+}
+
+.notification-item {
+    padding: 12px 16px;
+    border-bottom: 1px solid #e9ecef;
+    transition: background-color 0.2s ease;
+    cursor: pointer;
+}
+
+.notification-item:hover {
+    background-color: #f8f9fa;
+}
+
+.notification-item.unread {
+    background-color: #f0f7ff;
+    border-left: 3px solid #007bff;
+}
+
+.notification-item.pinned {
+    background-color: #fff8f0;
+}
+
+.notification-item-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 8px;
+}
+
+.notification-title {
+    font-weight: 600;
+    color: #333;
+    flex: 1;
+    margin: 0;
+}
+
+.notification-type {
+    display: inline-block;
+    padding: 2px 8px;
+    background: #e9ecef;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: #666;
+}
+
+.notification-type.high,
+.notification-type.urgent {
+    background: #ffe0e0;
+    color: #dc3545;
+}
+
+.notification-message {
+    color: #666;
+    font-size: 14px;
+    margin: 0 0 8px 0;
+    line-height: 1.4;
+}
+
+.notification-time {
+    font-size: 12px;
+    color: #999;
+    margin: 0;
+}
+
+.notification-actions {
+    display: flex;
+    gap: 4px;
+    margin-top: 8px;
+}
+
+.notification-action-btn {
+    background: none;
+    border: none;
+    color: #666;
+    cursor: pointer;
+    padding: 4px 8px;
+    font-size: 18px;
+    transition: color 0.2s ease;
+}
+
+.notification-action-btn:hover {
+    color: #333;
+}
+
+.notification-action-btn.pin.pinned {
+    color: #ffc107;
+}
+
+.notification-footer {
+    padding: 12px 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.notification-footer .btn {
+    color: #007bff;
+    text-decoration: none;
+    padding: 8px;
+}
+
+.notification-footer .btn:hover {
+    text-decoration: underline;
+}
+
+/* Toast Notifications */
+.toast-container {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 1050;
+    max-width: 400px;
+}
+
+.toast {
+    background: white;
+    border-radius: 4px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    margin-bottom: 12px;
+    animation: slideIn 0.3s ease;
+    overflow: hidden;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(400px);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+.toast.success {
+    border-left: 4px solid #28a745;
+}
+
+.toast.error {
+    border-left: 4px solid #dc3545;
+}
+
+.toast.warning {
+    border-left: 4px solid #ffc107;
+}
+
+.toast.info {
+    border-left: 4px solid #17a2b8;
+}
+
+.toast-content {
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.toast-icon {
+    font-size: 20px;
+    flex-shrink: 0;
+}
+
+.toast-message {
+    flex: 1;
+    margin: 0;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .notification-panel {
+        width: 100%;
+        right: -100%;
+    }
+    
+    .toast-container {
+        max-width: calc(100% - 40px);
+    }
+}
+</style>
+
+<script>
+let currentFilter = 'all';
+let notificationRefreshInterval;
+
+// Initialize notifications on page load
+$(document).ready(function() {
+    loadNotifications();
+    
+    // Auto-refresh notifications every 30 seconds
+    notificationRefreshInterval = setInterval(loadNotifications, 30000);
+    
+    // Close notification panel when clicking outside
+    $(document).on('click', function(e) {
+        const panel = $('#notificationPanel');
+        const bell = $('.notification-bell');
+        if (!panel.has(e.target).length && !bell.has(e.target).length && panel.hasClass('open')) {
+            toggleNotificationPanel();
+        }
+    });
+});
+
+function loadNotifications() {
+    $.ajax({
+        url: '/api/notifications?user_id=user_1',
+        type: 'GET',
+        success: function(data) {
+            const unreadCount = data.unread_count;
+            updateNotificationBadge(unreadCount);
+            displayNotifications(data.notifications);
+        },
+        error: function() {
+            console.error('Error loading notifications');
+        }
+    });
+}
+
+function displayNotifications(notifications) {
+    const list = $('#notificationList');
+    
+    if (notifications.length === 0) {
+        list.html(`
+            <div class="text-center p-4 text-muted">
+                <i class="material-icons">notifications_none</i>
+                <p>No notifications</p>
+            </div>
+        `);
+        return;
+    }
+    
+    let html = '';
+    notifications.forEach(notif => {
+        const isUnread = !notif.is_read ? 'unread' : '';
+        const isPinned = notif.is_pinned ? 'pinned' : '';
+        const timeAgo = getTimeAgo(notif.created_at);
+        const typeIcon = getNotificationTypeIcon(notif.type);
+        const priorityClass = `notification-type ${notif.priority}`;
+        
+        html += `
+            <div class="notification-item ${isUnread} ${isPinned}" id="notif-${notif.id}">
+                <div class="notification-item-header">
+                    <h6 class="notification-title">
+                        <span class="mr-2">${typeIcon}</span>${notif.title}
+                    </h6>
+                    <span class="${priorityClass}">${notif.priority}</span>
+                </div>
+                <p class="notification-message">${notif.message}</p>
+                <p class="notification-time">${timeAgo}</p>
+                <div class="notification-actions">
+                    ${!notif.is_read ? `
+                        <button class="notification-action-btn read" onclick="markNotificationRead('${notif.id}')" title="Mark as read">
+                            ✓
+                        </button>
+                    ` : ''}
+                    <button class="notification-action-btn pin ${isPinned ? 'pinned' : ''}" onclick="togglePinNotification('${notif.id}')" title="Pin/unpin">
+                        📌
+                    </button>
+                    <button class="notification-action-btn delete" onclick="deleteNotification('${notif.id}')" title="Delete">
+                        ✕
+                    </button>
+                </div>
+            </div>
+        `;
+    });
+    
+    list.html(html);
+}
+
+function filterNotifications(filter) {
+    currentFilter = filter;
+    
+    // Update active button
+    $('.notification-filter .btn').removeClass('active');
+    $(`.notification-filter .btn:contains("${filter.charAt(0).toUpperCase() + filter.slice(1)}")`).addClass('active');
+    
+    // Reload with filter
+    let url = '/api/notifications?user_id=user_1';
+    if (filter === 'unread') {
+        url += '&unread_only=true';
+    }
+    
+    $.ajax({
+        url: url,
+        type: 'GET',
+        success: function(data) {
+            displayNotifications(data.notifications);
+        }
+    });
+}
+
+function markNotificationRead(notificationId) {
+    $.ajax({
+        url: `/api/notifications/${notificationId}/read`,
+        type: 'POST',
+        success: function() {
+            loadNotifications();
+        }
+    });
+}
+
+function markAllAsRead() {
+    $.ajax({
+        url: '/api/notifications/mark-all-read?user_id=user_1',
+        type: 'POST',
+        success: function() {
+            loadNotifications();
+            showToast('All notifications marked as read', 'success');
+        }
+    });
+}
+
+function togglePinNotification(notificationId) {
+    $.ajax({
+        url: `/api/notifications/${notificationId}/pin`,
+        type: 'POST',
+        success: function() {
+            loadNotifications();
+        }
+    });
+}
+
+function deleteNotification(notificationId) {
+    $.ajax({
+        url: `/api/notifications/${notificationId}`,
+        type: 'DELETE',
+        success: function() {
+            $(`#notif-${notificationId}`).fadeOut(300, function() {
+                $(this).remove();
+                loadNotifications();
+            });
+        }
+    });
+}
+
+function clearAllNotifications() {
+    if (!confirm('Are you sure you want to delete all notifications?')) {
+        return;
+    }
+    
+    // Get all notification IDs and delete them
+    $.ajax({
+        url: '/api/notifications?user_id=user_1&limit=1000',
+        type: 'GET',
+        success: function(data) {
+            data.notifications.forEach(notif => {
+                $.ajax({
+                    url: `/api/notifications/${notif.id}`,
+                    type: 'DELETE'
+                });
+            });
+            loadNotifications();
+            showToast('All notifications cleared', 'success');
+        }
+    });
+}
+
+function toggleNotificationPanel() {
+    $('#notificationPanel').toggleClass('open');
+}
+
+function updateNotificationBadge(count) {
+    const badge = $('#notificationBadge');
+    if (count > 0) {
+        badge.text(count > 99 ? '99+' : count).removeClass('hidden');
+    } else {
+        badge.addClass('hidden');
+    }
+}
+
+function getTimeAgo(isoDate) {
+    const now = new Date();
+    const date = new Date(isoDate);
+    const diffMs = now - date;
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+    
+    if (diffMins < 1) return 'just now';
+    if (diffMins < 60) return `${diffMins}m ago`;
+    if (diffHours < 24) return `${diffHours}h ago`;
+    if (diffDays < 7) return `${diffDays}d ago`;
+    
+    return date.toLocaleDateString();
+}
+
+function getNotificationTypeIcon(type) {
+    const iconMap = {
+        'deal_updated': '🤝',
+        'lead_scored': '⭐',
+        'task_assigned': '✓',
+        'task_overdue': '⏰',
+        'email_opened': '📧',
+        'comment_added': '💬',
+        'mention': '👤',
+        'meeting_reminder': '📅',
+        'deal_stage_change': '📈',
+        'activity_feed': '📢'
+    };
+    return iconMap[type] || '📢';
+}
+
+function showToast(message, type = 'info') {
+    const iconMap = {
+        success: '✓',
+        error: '✕',
+        warning: '⚠',
+        info: 'ℹ'
+    };
+    
+    const html = `
+        <div class="toast ${type}">
+            <div class="toast-content">
+                <span class="toast-icon">${iconMap[type]}</span>
+                <p class="toast-message">${message}</p>
+            </div>
+        </div>
+    `;
+    
+    const toast = $(html);
+    $('#toastContainer').append(toast);
+    
+    setTimeout(() => {
+        toast.fadeOut(300, function() {
+            $(this).remove();
+        });
+    }, 3000);
+}
+
+// Request notification permission for browser push
+function requestNotificationPermission() {
+    if ('Notification' in window && Notification.permission === 'default') {
+        Notification.requestPermission();
+    }
+}
+
+// Show browser notification
+function showBrowserNotification(title, options = {}) {
+    if ('Notification' in window && Notification.permission === 'granted') {
+        new Notification(title, {
+            icon: '/static/img/icon.png',
+            ...options
+        });
+    }
+}
+
+// Cleanup interval on page unload
+$(window).on('unload', function() {
+    if (notificationRefreshInterval) {
+        clearInterval(notificationRefreshInterval);
+    }
+});
+</script>
