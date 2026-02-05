@@ -14,6 +14,11 @@ from models.user_profile import (
     notification_manager, profile_manager, activity_logger,
     init_default_user_profile, NotificationType, NotificationPriority
 )
+from models.salesforce_features import (
+    task_manager, event_manager, report_engine, approval_process,
+    workflow_automation, forecast_management, document_management,
+    custom_object_support, chatter_collaboration, formula_engine
+)
 from services import gemini_service
 
 # Initialize Flask app
@@ -912,6 +917,598 @@ def api_test_notification():
     )
     
     return jsonify({"success": True, "message": "Test notification created"})
+
+
+# ==================== SALESFORCE FEATURES ====================
+
+# ==================== API: TASK MANAGEMENT ====================
+
+@app.route('/api/tasks', methods=['POST'])
+def api_create_task():
+    """Create a new task"""
+    data = request.json
+    user_id = data.get('user_id', 'user_1')
+    
+    task = task_manager.create_task(
+        user_id=user_id,
+        subject=data.get('subject'),
+        description=data.get('description', ''),
+        priority=data.get('priority', 'Normal'),
+        status=data.get('status', 'Not Started'),
+        due_date=data.get('due_date'),
+        assigned_to=data.get('assigned_to', user_id),
+        related_to_type=data.get('related_to_type'),
+        related_to_id=data.get('related_to_id'),
+    )
+    
+    notify_user(
+        user_id,
+        NotificationType.TASK_CREATED.value,
+        "Task Created",
+        f"New task: {data.get('subject')}",
+        icon='task_alt',
+        color='blue'
+    )
+    
+    return jsonify(task), 201
+
+
+@app.route('/api/tasks', methods=['GET'])
+def api_get_tasks():
+    """Get all tasks for user"""
+    user_id = request.args.get('user_id', 'user_1')
+    status = request.args.get('status')
+    priority = request.args.get('priority')
+    
+    tasks = task_manager.get_user_tasks(user_id)
+    
+    if status:
+        tasks = [t for t in tasks if t.get('status') == status]
+    if priority:
+        tasks = [t for t in tasks if t.get('priority') == priority]
+    
+    return jsonify({"tasks": tasks, "total": len(tasks)})
+
+
+@app.route('/api/tasks/<task_id>', methods=['GET'])
+def api_get_task(task_id):
+    """Get specific task"""
+    task = task_manager.get_task(task_id)
+    if not task:
+        return jsonify({"error": "Task not found"}), 404
+    return jsonify(task)
+
+
+@app.route('/api/tasks/<task_id>', methods=['PUT'])
+def api_update_task(task_id):
+    """Update task"""
+    data = request.json
+    task = task_manager.update_task(task_id, data)
+    if not task:
+        return jsonify({"error": "Task not found"}), 404
+    return jsonify(task)
+
+
+@app.route('/api/tasks/<task_id>/complete', methods=['PUT'])
+def api_complete_task(task_id):
+    """Mark task as complete"""
+    task = task_manager.update_task(task_id, {'status': 'Completed'})
+    if not task:
+        return jsonify({"error": "Task not found"}), 404
+    
+    user_id = task.get('user_id', 'user_1')
+    notify_user(
+        user_id,
+        NotificationType.TASK_COMPLETED.value,
+        "Task Completed",
+        f"Task '{task.get('subject')}' marked as complete",
+        icon='check_circle',
+        color='green'
+    )
+    
+    return jsonify(task)
+
+
+@app.route('/api/tasks/<task_id>', methods=['DELETE'])
+def api_delete_task(task_id):
+    """Delete task"""
+    if task_manager.delete_task(task_id):
+        return jsonify({"success": True}), 204
+    return jsonify({"error": "Task not found"}), 404
+
+
+@app.route('/api/task-queues', methods=['POST'])
+def api_create_task_queue():
+    """Create task queue"""
+    data = request.json
+    queue = task_manager.create_task_queue(
+        name=data.get('name'),
+        description=data.get('description', ''),
+        owner_id=data.get('owner_id', 'user_1')
+    )
+    return jsonify(queue), 201
+
+
+@app.route('/api/task-queues', methods=['GET'])
+def api_get_task_queues():
+    """Get all task queues"""
+    queues = task_manager.get_all_task_queues()
+    return jsonify({"queues": queues, "total": len(queues)})
+
+
+# ==================== API: EVENT MANAGEMENT ====================
+
+@app.route('/api/events', methods=['POST'])
+def api_create_event():
+    """Create event/meeting"""
+    data = request.json
+    user_id = data.get('user_id', 'user_1')
+    
+    event = event_manager.create_event(
+        user_id=user_id,
+        title=data.get('title'),
+        description=data.get('description', ''),
+        event_type=data.get('event_type', 'Meeting'),
+        start_time=data.get('start_time'),
+        end_time=data.get('end_time'),
+        location=data.get('location', ''),
+        attendees=data.get('attendees', []),
+        related_to_type=data.get('related_to_type'),
+        related_to_id=data.get('related_to_id'),
+    )
+    
+    notify_user(
+        user_id,
+        NotificationType.EVENT_CREATED.value,
+        "Event Created",
+        f"New event: {data.get('title')}",
+        icon='event',
+        color='purple'
+    )
+    
+    return jsonify(event), 201
+
+
+@app.route('/api/events', methods=['GET'])
+def api_get_events():
+    """Get events"""
+    user_id = request.args.get('user_id', 'user_1')
+    event_type = request.args.get('type')
+    
+    events = event_manager.get_user_events(user_id)
+    
+    if event_type:
+        events = [e for e in events if e.get('event_type') == event_type]
+    
+    return jsonify({"events": events, "total": len(events)})
+
+
+@app.route('/api/events/<event_id>', methods=['GET'])
+def api_get_event(event_id):
+    """Get specific event"""
+    event = event_manager.get_event(event_id)
+    if not event:
+        return jsonify({"error": "Event not found"}), 404
+    return jsonify(event)
+
+
+@app.route('/api/events/<event_id>', methods=['PUT'])
+def api_update_event(event_id):
+    """Update event"""
+    data = request.json
+    event = event_manager.update_event(event_id, data)
+    if not event:
+        return jsonify({"error": "Event not found"}), 404
+    return jsonify(event)
+
+
+@app.route('/api/events/<event_id>', methods=['DELETE'])
+def api_delete_event(event_id):
+    """Delete event"""
+    if event_manager.delete_event(event_id):
+        return jsonify({"success": True}), 204
+    return jsonify({"error": "Event not found"}), 404
+
+
+# ==================== API: REPORTS & DASHBOARDS ====================
+
+@app.route('/api/reports', methods=['POST'])
+def api_create_report():
+    """Create report"""
+    data = request.json
+    user_id = data.get('user_id', 'user_1')
+    
+    report = report_engine.create_report(
+        user_id=user_id,
+        name=data.get('name'),
+        report_type=data.get('report_type', 'Tabular'),
+        source_object=data.get('source_object'),
+        columns=data.get('columns', []),
+        filters=data.get('filters', []),
+        grouping=data.get('grouping', []),
+        is_public=data.get('is_public', False),
+    )
+    
+    notify_user(
+        user_id,
+        NotificationType.REPORT_CREATED.value,
+        "Report Created",
+        f"New report: {data.get('name')}",
+        icon='assessment',
+        color='blue'
+    )
+    
+    return jsonify(report), 201
+
+
+@app.route('/api/reports', methods=['GET'])
+def api_get_reports():
+    """Get all reports"""
+    user_id = request.args.get('user_id', 'user_1')
+    reports = report_engine.get_user_reports(user_id)
+    return jsonify({"reports": reports, "total": len(reports)})
+
+
+@app.route('/api/reports/<report_id>/execute', methods=['POST'])
+def api_execute_report(report_id):
+    """Execute report and get results"""
+    report = report_engine.get_report(report_id)
+    if not report:
+        return jsonify({"error": "Report not found"}), 404
+    
+    # Simulate report execution
+    results = {
+        "report_id": report_id,
+        "name": report.get('name'),
+        "executed_at": report.get('created_at'),
+        "data": [],
+        "summary": {"total_records": 0}
+    }
+    
+    return jsonify(results)
+
+
+@app.route('/api/dashboards', methods=['POST'])
+def api_create_dashboard():
+    """Create dashboard"""
+    data = request.json
+    user_id = data.get('user_id', 'user_1')
+    
+    dashboard = report_engine.create_dashboard(
+        user_id=user_id,
+        name=data.get('name'),
+        description=data.get('description', ''),
+        widgets=data.get('widgets', []),
+        is_public=data.get('is_public', False),
+    )
+    
+    return jsonify(dashboard), 201
+
+
+@app.route('/api/dashboards', methods=['GET'])
+def api_get_dashboards():
+    """Get all dashboards"""
+    user_id = request.args.get('user_id', 'user_1')
+    dashboards = report_engine.get_user_dashboards(user_id)
+    return jsonify({"dashboards": dashboards, "total": len(dashboards)})
+
+
+# ==================== API: APPROVALS ====================
+
+@app.route('/api/approvals', methods=['POST'])
+def api_submit_approval():
+    """Submit record for approval"""
+    data = request.json
+    user_id = data.get('user_id', 'user_1')
+    
+    approval = approval_process.submit_for_approval(
+        submitter_id=user_id,
+        record_type=data.get('record_type'),
+        record_id=data.get('record_id'),
+        process_id=data.get('process_id'),
+        comments=data.get('comments', ''),
+    )
+    
+    notify_user(
+        user_id,
+        NotificationType.APPROVAL_SUBMITTED.value,
+        "Approval Submitted",
+        f"Record submitted for approval",
+        icon='check',
+        color='blue'
+    )
+    
+    return jsonify(approval), 201
+
+
+@app.route('/api/approvals', methods=['GET'])
+def api_get_approvals():
+    """Get pending approvals"""
+    user_id = request.args.get('user_id', 'user_1')
+    approvals = approval_process.get_pending_approvals(user_id)
+    return jsonify({"approvals": approvals, "total": len(approvals)})
+
+
+@app.route('/api/approvals/<approval_id>/approve', methods=['POST'])
+def api_approve_record(approval_id):
+    """Approve a record"""
+    data = request.json
+    approver_id = data.get('approver_id', 'user_1')
+    comments = data.get('comments', '')
+    
+    approval = approval_process.approve_record(approval_id, approver_id, comments)
+    if not approval:
+        return jsonify({"error": "Approval not found"}), 404
+    
+    notify_user(
+        approver_id,
+        NotificationType.APPROVAL_APPROVED.value,
+        "Record Approved",
+        "You approved a record",
+        icon='verified',
+        color='green'
+    )
+    
+    return jsonify(approval)
+
+
+@app.route('/api/approvals/<approval_id>/reject', methods=['POST'])
+def api_reject_record(approval_id):
+    """Reject a record"""
+    data = request.json
+    approver_id = data.get('approver_id', 'user_1')
+    comments = data.get('comments', '')
+    
+    approval = approval_process.reject_record(approval_id, approver_id, comments)
+    if not approval:
+        return jsonify({"error": "Approval not found"}), 404
+    
+    notify_user(
+        approver_id,
+        NotificationType.APPROVAL_REJECTED.value,
+        "Record Rejected",
+        "You rejected a record",
+        icon='clear',
+        color='red'
+    )
+    
+    return jsonify(approval)
+
+
+# ==================== API: WORKFLOWS ====================
+
+@app.route('/api/workflows', methods=['POST'])
+def api_create_workflow():
+    """Create workflow automation"""
+    data = request.json
+    user_id = data.get('user_id', 'user_1')
+    
+    workflow = workflow_automation.create_workflow(
+        user_id=user_id,
+        name=data.get('name'),
+        description=data.get('description', ''),
+        object_type=data.get('object_type'),
+        trigger=data.get('trigger'),
+        criteria=data.get('criteria', []),
+        actions=data.get('actions', []),
+    )
+    
+    return jsonify(workflow), 201
+
+
+@app.route('/api/workflows', methods=['GET'])
+def api_get_workflows():
+    """Get all workflows"""
+    user_id = request.args.get('user_id', 'user_1')
+    workflows = workflow_automation.get_user_workflows(user_id)
+    return jsonify({"workflows": workflows, "total": len(workflows)})
+
+
+@app.route('/api/workflows/<workflow_id>/activate', methods=['PUT'])
+def api_activate_workflow(workflow_id):
+    """Activate workflow"""
+    workflow = workflow_automation.activate_workflow(workflow_id)
+    if not workflow:
+        return jsonify({"error": "Workflow not found"}), 404
+    return jsonify(workflow)
+
+
+@app.route('/api/workflows/<workflow_id>/deactivate', methods=['PUT'])
+def api_deactivate_workflow(workflow_id):
+    """Deactivate workflow"""
+    workflow = workflow_automation.deactivate_workflow(workflow_id)
+    if not workflow:
+        return jsonify({"error": "Workflow not found"}), 404
+    return jsonify(workflow)
+
+
+# ==================== API: FORECASTING ====================
+
+@app.route('/api/forecasts', methods=['POST'])
+def api_generate_forecast():
+    """Generate sales forecast"""
+    data = request.json
+    user_id = data.get('user_id', 'user_1')
+    
+    forecast = forecast_management.generate_forecast(
+        user_id=user_id,
+        period=data.get('period'),
+        start_date=data.get('start_date'),
+        end_date=data.get('end_date'),
+        include_scenarios=data.get('include_scenarios', False),
+    )
+    
+    return jsonify(forecast), 201
+
+
+@app.route('/api/forecasts', methods=['GET'])
+def api_get_forecasts():
+    """Get forecasts"""
+    user_id = request.args.get('user_id', 'user_1')
+    forecasts = forecast_management.get_user_forecasts(user_id)
+    return jsonify({"forecasts": forecasts, "total": len(forecasts)})
+
+
+# ==================== API: DOCUMENTS ====================
+
+@app.route('/api/documents', methods=['POST'])
+def api_upload_document():
+    """Upload document"""
+    user_id = request.form.get('user_id', 'user_1')
+    
+    if 'file' not in request.files:
+        return jsonify({"error": "No file part"}), 400
+    
+    file = request.files['file']
+    if file.filename == '':
+        return jsonify({"error": "No selected file"}), 400
+    
+    document = document_management.upload_document(
+        user_id=user_id,
+        filename=file.filename,
+        file_size=len(file.read()),
+        file_type=file.content_type or 'application/octet-stream',
+        related_to_type=request.form.get('related_to_type'),
+        related_to_id=request.form.get('related_to_id'),
+        description=request.form.get('description', ''),
+    )
+    
+    return jsonify(document), 201
+
+
+@app.route('/api/documents', methods=['GET'])
+def api_get_documents():
+    """Get documents"""
+    user_id = request.args.get('user_id', 'user_1')
+    related_to_type = request.args.get('related_to_type')
+    related_to_id = request.args.get('related_to_id')
+    
+    documents = document_management.get_user_documents(user_id)
+    
+    if related_to_type and related_to_id:
+        documents = [d for d in documents if d.get('related_to_type') == related_to_type and d.get('related_to_id') == related_to_id]
+    
+    return jsonify({"documents": documents, "total": len(documents)})
+
+
+# ==================== API: CUSTOM OBJECTS ====================
+
+@app.route('/api/custom-objects', methods=['POST'])
+def api_create_custom_object():
+    """Create custom object"""
+    data = request.json
+    user_id = data.get('user_id', 'user_1')
+    
+    custom_obj = custom_object_support.create_custom_object(
+        user_id=user_id,
+        name=data.get('name'),
+        label=data.get('label'),
+        description=data.get('description', ''),
+    )
+    
+    return jsonify(custom_obj), 201
+
+
+@app.route('/api/custom-objects', methods=['GET'])
+def api_get_custom_objects():
+    """Get custom objects"""
+    user_id = request.args.get('user_id', 'user_1')
+    custom_objs = custom_object_support.get_user_custom_objects(user_id)
+    return jsonify({"custom_objects": custom_objs, "total": len(custom_objs)})
+
+
+@app.route('/api/custom-objects/<object_id>/fields', methods=['POST'])
+def api_add_custom_field(object_id):
+    """Add custom field to object"""
+    data = request.json
+    
+    field = custom_object_support.add_custom_field(
+        object_id=object_id,
+        field_name=data.get('field_name'),
+        field_type=data.get('field_type', 'Text'),
+        label=data.get('label'),
+        required=data.get('required', False),
+        unique=data.get('unique', False),
+        help_text=data.get('help_text', ''),
+    )
+    
+    if not field:
+        return jsonify({"error": "Object not found"}), 404
+    
+    return jsonify(field), 201
+
+
+# ==================== API: CHATTER (COLLABORATION) ====================
+
+@app.route('/api/chatter/feed/<record_type>/<record_id>', methods=['GET'])
+def api_get_feed(record_type, record_id):
+    """Get feed for a record"""
+    feed = chatter_collaboration.get_record_feed(record_type, record_id)
+    return jsonify({"feed": feed, "total": len(feed)})
+
+
+@app.route('/api/chatter/feed/<record_type>/<record_id>', methods=['POST'])
+def api_post_to_feed(record_type, record_id):
+    """Post to record feed"""
+    data = request.json
+    user_id = data.get('user_id', 'user_1')
+    
+    post = chatter_collaboration.post_to_feed(
+        user_id=user_id,
+        record_type=record_type,
+        record_id=record_id,
+        content=data.get('content'),
+        attachment=data.get('attachment'),
+    )
+    
+    notify_user(
+        user_id,
+        NotificationType.COMMENT_ADDED.value,
+        "Posted to Feed",
+        "Your post was added to the feed",
+        icon='comment',
+        color='blue'
+    )
+    
+    return jsonify(post), 201
+
+
+@app.route('/api/chatter/comment/<post_id>', methods=['POST'])
+def api_comment_on_post(post_id):
+    """Add comment to post"""
+    data = request.json
+    user_id = data.get('user_id', 'user_1')
+    
+    comment = chatter_collaboration.comment_on_post(
+        user_id=user_id,
+        post_id=post_id,
+        content=data.get('content'),
+    )
+    
+    if not comment:
+        return jsonify({"error": "Post not found"}), 404
+    
+    return jsonify(comment), 201
+
+
+@app.route('/api/chatter/follow/<record_type>/<record_id>', methods=['POST'])
+def api_follow_record(record_type, record_id):
+    """Follow a record"""
+    user_id = request.json.get('user_id', 'user_1')
+    
+    follow = chatter_collaboration.follow_record(user_id, record_type, record_id)
+    
+    return jsonify(follow), 201
+
+
+@app.route('/api/chatter/unfollow/<record_type>/<record_id>', methods=['POST'])
+def api_unfollow_record(record_type, record_id):
+    """Unfollow a record"""
+    user_id = request.json.get('user_id', 'user_1')
+    
+    unfollow = chatter_collaboration.unfollow_record(user_id, record_type, record_id)
+    
+    return jsonify({"success": unfollow})
 
 
 

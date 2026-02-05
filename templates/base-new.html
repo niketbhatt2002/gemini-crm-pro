@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}GeminiCRM Pro{% endblock %} - Enterprise Sales Intelligence</title>
+    
+    <!-- Google Fonts (Material Design 3) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Google+Sans+Text:wght@400;500&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    
+    <!-- Material Icons -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons|Material+Icons+Outlined|Material+Icons+Round" rel="stylesheet">
+    
+    <!-- Material Design 3 CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/material-design-3.css') }}">
+    
+    <!-- App Styles -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    
+    {% block head %}{% endblock %}
+</head>
+<body>
+    <!-- Navigation Sidebar -->
+    <nav class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="logo">
+                <div class="logo-icon">
+                    <span class="material-icons-round" style="font-size: 28px;">dashboard</span>
+                </div>
+                <div class="logo-text">
+                    <h3>GeminiCRM</h3>
+                    <p>Pro</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="sidebar-menu">
+            <!-- Core CRM -->
+            <div class="menu-section">
+                <p class="menu-label">CRM CORE</p>
+                <a href="/" class="menu-item {% if request.endpoint == 'index' %}active{% endif %}">
+                    <span class="material-icons-outlined">dashboard</span>
+                    <span>Dashboard</span>
+                </a>
+                <a href="/leads" class="menu-item {% if request.endpoint == 'leads_page' %}active{% endif %}">
+                    <span class="material-icons-outlined">people</span>
+                    <span>Leads</span>
+                    <span class="badge-info">12</span>
+                </a>
+                <a href="/contacts" class="menu-item {% if request.endpoint == 'contacts_page' %}active{% endif %}">
+                    <span class="material-icons-outlined">contacts</span>
+                    <span>Contacts</span>
+                </a>
+                <a href="/deals" class="menu-item {% if request.endpoint == 'deals_page' %}active{% endif %}">
+                    <span class="material-icons-outlined">trending_up</span>
+                    <span>Deals</span>
+                    <span class="badge-warning">5</span>
+                </a>
+            </div>
+            
+            <!-- Sales Tools -->
+            <div class="menu-section">
+                <p class="menu-label">SALES TOOLS</p>
+                <a href="/pipeline" class="menu-item {% if request.endpoint == 'pipeline_page' %}active{% endif %}">
+                    <span class="material-icons-outlined">schema</span>
+                    <span>Pipeline</span>
+                </a>
+                <a href="/tasks" class="menu-item" id="tasks-nav">
+                    <span class="material-icons-outlined">task_alt</span>
+                    <span>Tasks</span>
+                    <span class="badge-error">8</span>
+                </a>
+                <a href="/events" class="menu-item" id="events-nav">
+                    <span class="material-icons-outlined">event</span>
+                    <span>Calendar</span>
+                </a>
+            </div>
+            
+            <!-- Analytics & Reporting -->
+            <div class="menu-section">
+                <p class="menu-label">INSIGHTS</p>
+                <a href="/reports" class="menu-item" id="reports-nav">
+                    <span class="material-icons-outlined">assessment</span>
+                    <span>Reports</span>
+                </a>
+                <a href="/dashboards" class="menu-item" id="dashboards-nav">
+                    <span class="material-icons-outlined">monitoring</span>
+                    <span>Dashboards</span>
+                </a>
+                <a href="/forecasts" class="menu-item" id="forecasts-nav">
+                    <span class="material-icons-outlined">show_chart</span>
+                    <span>Forecasts</span>
+                </a>
+            </div>
+            
+            <!-- Administration -->
+            <div class="menu-section">
+                <p class="menu-label">ADMIN</p>
+                <a href="/approvals" class="menu-item" id="approvals-nav">
+                    <span class="material-icons-outlined">verified_user</span>
+                    <span>Approvals</span>
+                </a>
+                <a href="/workflows" class="menu-item" id="workflows-nav">
+                    <span class="material-icons-outlined">automation</span>
+                    <span>Workflows</span>
+                </a>
+                <a href="/documents" class="menu-item" id="documents-nav">
+                    <span class="material-icons-outlined">description</span>
+                    <span>Documents</span>
+                </a>
+                <a href="/settings" class="menu-item">
+                    <span class="material-icons-outlined">settings</span>
+                    <span>Settings</span>
+                </a>
+            </div>
+        </div>
+        
+        <div class="sidebar-footer">
+            <a href="/profile" class="user-card">
+                <div class="user-avatar">JD</div>
+                <div class="user-info">
+                    <p class="user-name">John Doe</p>
+                    <p class="user-role">Sales Manager</p>
+                </div>
+            </a>
+        </div>
+    </nav>
+    
+    <!-- Top Header -->
+    <header class="top-header">
+        <div class="header-left">
+            <button class="btn-icon" id="toggleSidebar" title="Toggle Sidebar">
+                <span class="material-icons-outlined">menu</span>
+            </button>
+            <div class="search-box">
+                <span class="material-icons-outlined">search</span>
+                <input type="text" placeholder="Search records, deals, contacts..." id="globalSearch">
+            </div>
+        </div>
+        
+        <div class="header-right">
+            <!-- AI Assistant Button -->
+            <button class="btn-icon" title="AI Assistant" id="aiAssistant">
+                <span class="material-icons-outlined">smart_toy</span>
+            </button>
+            
+            <!-- Notifications -->
+            <button class="btn-icon notifications-btn" id="notificationsBtn" title="Notifications">
+                <span class="material-icons-outlined">notifications</span>
+                <span class="notification-badge" id="notificationBadge">3</span>
+            </button>
+            
+            <!-- Notifications Panel -->
+            <div class="notifications-panel" id="notificationsPanel">
+                <div class="panel-header">
+                    <h3>Notifications</h3>
+                    <button class="btn-icon" onclick="closeNotifications()">
+                        <span class="material-icons-outlined">close</span>
+                    </button>
+                </div>
+                <div class="notifications-list" id="notificationsList">
+                    <!-- Populated by JavaScript -->
+                </div>
+            </div>
+            
+            <!-- Profile Menu -->
+            <div class="profile-menu">
+                <button class="profile-button" id="profileMenuBtn">
+                    <div class="profile-avatar">JD</div>
+                </button>
+                
+                <div class="dropdown-menu" id="profileDropdown">
+                    <a href="/profile" class="dropdown-item">
+                        <span class="material-icons-outlined">person</span>
+                        My Profile
+                    </a>
+                    <a href="/profile#team" class="dropdown-item">
+                        <span class="material-icons-outlined">group</span>
+                        My Team
+                    </a>
+                    <a href="/settings" class="dropdown-item">
+                        <span class="material-icons-outlined">settings</span>
+                        Settings
+                    </a>
+                    <a href="/help" class="dropdown-item">
+                        <span class="material-icons-outlined">help_outline</span>
+                        Help & Support
+                    </a>
+                    <hr class="dropdown-divider">
+                    <a href="/logout" class="dropdown-item text-error">
+                        <span class="material-icons-outlined">logout</span>
+                        Sign Out
+                    </a>
+                </div>
+            </div>
+        </div>
+    </header>
+    
+    <!-- Main Content -->
+    <main class="main-content">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">
+                        <span class="material-icons-outlined">info</span>
+                        <span>{{ message }}</span>
+                        <button class="btn-icon" onclick="this.parentElement.style.display='none';">
+                            <span class="material-icons-outlined">close</span>
+                        </button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        
+        {% block content %}{% endblock %}
+    </main>
+    
+    <!-- Footer -->
+    <footer class="app-footer">
+        <div class="footer-content">
+            <p>&copy; 2024 GeminiCRM Pro. Powered by Google Gemini AI. All rights reserved.</p>
+            <div class="footer-links">
+                <a href="/privacy">Privacy</a>
+                <a href="/terms">Terms</a>
+                <a href="/help">Help Center</a>
+            </div>
+        </div>
+    </footer>
+    
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script>
+        // Sidebar Toggle
+        document.getElementById('toggleSidebar').addEventListener('click', () => {
+            document.getElementById('sidebar').classList.toggle('collapsed');
+        });
+        
+        // Notifications Panel
+        document.getElementById('notificationsBtn').addEventListener('click', (e) => {
+            e.stopPropagation();
+            document.getElementById('notificationsPanel').classList.toggle('show');
+            loadNotifications();
+        });
+        
+        function closeNotifications() {
+            document.getElementById('notificationsPanel').classList.remove('show');
+        }
+        
+        function loadNotifications() {
+            axios.get('/api/notifications/user/user_1')
+                .then(response => {
+                    const notificationsList = document.getElementById('notificationsList');
+                    notificationsList.innerHTML = '';
+                    
+                    response.data.notifications.slice(0, 10).forEach(notif => {
+                        const notifEl = document.createElement('div');
+                        notifEl.className = 'notification-item';
+                        notifEl.innerHTML = `
+                            <div class="notification-icon" style="background-color: var(--md-sys-color-${notif.color || 'primary'}-container);">
+                                <span class="material-icons-outlined">${notif.icon || 'info'}</span>
+                            </div>
+                            <div class="notification-content">
+                                <p class="notification-title">${notif.title}</p>
+                                <p class="notification-message">${notif.message}</p>
+                                <p class="notification-time">${new Date(notif.created_at).toLocaleDateString()}</p>
+                            </div>
+                        `;
+                        notificationsList.appendChild(notifEl);
+                    });
+                });
+        }
+        
+        // Profile Menu
+        document.getElementById('profileMenuBtn').addEventListener('click', (e) => {
+            e.stopPropagation();
+            document.getElementById('profileDropdown').classList.toggle('show');
+        });
+        
+        // Close dropdowns on outside click
+        document.addEventListener('click', () => {
+            document.getElementById('profileDropdown').classList.remove('show');
+            closeNotifications();
+        });
+        
+        // Global Search
+        document.getElementById('globalSearch').addEventListener('keyup', (e) => {
+            if (e.key === 'Enter') {
+                // Implement global search
+                console.log('Search for:', e.target.value);
+            }
+        });
+        
+        // AI Assistant
+        document.getElementById('aiAssistant').addEventListener('click', () => {
+            // Open AI assistant panel
+            console.log('AI Assistant clicked');
+        });
+    </script>
+    
+    {% block scripts %}{% endblock %}
+</body>
+</html>
