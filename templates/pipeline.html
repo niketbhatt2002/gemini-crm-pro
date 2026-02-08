@@ -1062,7 +1062,7 @@ async function onDrop(e) {
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({ stage: newStage })
             });
-            loadDeals();
+            await refreshPipeline();
         } catch (e) { showToast('Failed to update deal', 'error'); }
     }
     draggedId = null;
@@ -1070,21 +1070,5 @@ async function onDrop(e) {
 
 function openModal(id) { document.getElementById(id).classList.add('active'); }
 function closeModal(id) { document.getElementById(id).classList.remove('active'); }
-
-async function saveDeal() {
-    const form = document.getElementById('addDealForm');
-    const data = Object.fromEntries(new FormData(form));
-    data.value = parseInt(data.value) || 0;
-    data.stage = 'lead';
-    data.probability = 10;
-    
-    try {
-        await fetch('/api/deals', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(data) });
-        showToast('Deal created!', 'success');
-        closeModal('addDealModal');
-        form.reset();
-        loadDeals();
-    } catch (e) { showToast('Failed to create deal', 'error'); }
-}
 </script>
 {% endblock %}

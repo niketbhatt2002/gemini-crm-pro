@@ -1037,41 +1037,8 @@ function formatRelativeTime(dateStr) {
     if (days < 7) return `${days}d ago`;
     return date.toLocaleDateString();
 }
-</script>
-{% endblock %}
-                </div>
-            </td>
-            <td>${c.company || '-'}</td>
-            <td>${c.email}</td>
-            <td>${c.phone || '-'}</td>
-            <td>${[c.city, c.country].filter(Boolean).join(', ') || '-'}</td>
-            <td><button class="btn btn-icon btn-ghost" onclick="deleteContact('${c.id}')"><span class="material-icons-outlined">delete</span></button></td>
-        </tr>
-    `).join('');
-}
 
 function openModal(id) { document.getElementById(id).classList.add('active'); }
 function closeModal(id) { document.getElementById(id).classList.remove('active'); }
-
-async function saveContact() {
-    const form = document.getElementById('addContactForm');
-    const data = Object.fromEntries(new FormData(form));
-    try {
-        await fetch('/api/contacts', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(data) });
-        showToast('Contact created!', 'success');
-        closeModal('addContactModal');
-        form.reset();
-        loadContacts();
-    } catch (e) { showToast('Failed to create contact', 'error'); }
-}
-
-async function deleteContact(id) {
-    if (!confirm('Delete this contact?')) return;
-    try {
-        await fetch(`/api/contacts/${id}`, { method: 'DELETE' });
-        showToast('Contact deleted', 'success');
-        loadContacts();
-    } catch (e) { showToast('Failed to delete', 'error'); }
-}
 </script>
 {% endblock %}

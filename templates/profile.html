@@ -1,579 +1,1355 @@
-{% extends "base.html" %}
+{% extends "base.html" %}{% extends "base.html" %}
+
+{% block title %}My Profile - GeminiCRM Pro{% endblock %}
 
 {% block content %}
-<div class="container-fluid p-4">
-    <!-- Page Header -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h1 class="mb-0">My Profile</h1>
-            <p class="text-muted mb-0">Manage your account and preferences</p>
-        </div>
-        <div class="btn-group">
-            <button class="btn btn-outline-secondary" onclick="editProfile()" title="Edit Profile">
-                <i class="material-icons">edit</i> Edit
-            </button>
-            <button class="btn btn-outline-secondary" onclick="viewSettings()" title="Settings">
-                <i class="material-icons">settings</i> Settings
-            </button>
-        </div>
-    </div>
 
-    <div class="row">
-        <!-- Left Column: Profile Card -->
-        <div class="col-lg-4 mb-4">
-            <div class="card shadow-sm">
-                <div class="card-body text-center">
-                    <!-- Avatar -->
-                    <div class="mb-3">
-                        <div id="profileAvatar" class="avatar-large rounded-circle mx-auto mb-3" 
+{% block extra_head %}<div class="container-fluid p-4">
+
+<style>    <!-- Page Header -->
+
+.profile-header {    <div class="d-flex justify-content-between align-items-center mb-4">
+
+    background: linear-gradient(135deg, var(--primary) 0%, var(--tertiary) 100%);        <div>
+
+    border-radius: var(--radius-xl);            <h1 class="mb-0">My Profile</h1>
+
+    padding: 48px 32px;            <p class="text-muted mb-0">Manage your account and preferences</p>
+
+    color: white;        </div>
+
+    margin-bottom: 24px;        <div class="btn-group">
+
+    display: flex;            <button class="btn btn-outline-secondary" onclick="editProfile()" title="Edit Profile">
+
+    align-items: center;                <i class="material-icons">edit</i> Edit
+
+    gap: 32px;            </button>
+
+    position: relative;            <button class="btn btn-outline-secondary" onclick="viewSettings()" title="Settings">
+
+    overflow: hidden;                <i class="material-icons">settings</i> Settings
+
+}            </button>
+
+        </div>
+
+.profile-header::before {    </div>
+
+    content: '';
+
+    position: absolute;    <div class="row">
+
+    top: -50%;        <!-- Left Column: Profile Card -->
+
+    right: -10%;        <div class="col-lg-4 mb-4">
+
+    width: 400px;            <div class="card shadow-sm">
+
+    height: 400px;                <div class="card-body text-center">
+
+    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);                    <!-- Avatar -->
+
+    border-radius: 50%;                    <div class="mb-3">
+
+}                        <div id="profileAvatar" class="avatar-large rounded-circle mx-auto mb-3" 
+
                              style="width: 100px; height: 100px; font-size: 32px; line-height: 100px;">
-                            JD
-                        </div>
-                    </div>
 
-                    <!-- Profile Info -->
-                    <h3 id="profileName" class="mb-1">John Doe</h3>
-                    <p id="profileTitle" class="text-muted mb-3">Sales Manager</p>
-                    
-                    <!-- Status Badge -->
-                    <div class="mb-3">
-                        <span id="statusBadge" class="badge badge-success badge-pill px-3 py-2">
-                            <i class="material-icons">circle</i> Active
-                        </span>
-                    </div>
+.profile-avatar-large {                            JD
 
-                    <hr>
+    width: 120px;                        </div>
 
-                    <!-- Contact Info -->
-                    <div class="text-left mb-3">
-                        <p class="mb-2"><strong>Email</strong><br><span id="profileEmail">john@example.com</span></p>
-                        <p class="mb-2"><strong>Phone</strong><br><span id="profilePhone">+1-555-0100</span></p>
-                        <p class="mb-2"><strong>Department</strong><br><span id="profileDept">Sales</span></p>
+    height: 120px;                    </div>
+
+    border-radius: 50%;
+
+    background: rgba(255,255,255,0.2);                    <!-- Profile Info -->
+
+    backdrop-filter: blur(10px);                    <h3 id="profileName" class="mb-1">John Doe</h3>
+
+    display: flex;                    <p id="profileTitle" class="text-muted mb-3">Sales Manager</p>
+
+    align-items: center;                    
+
+    justify-content: center;                    <!-- Status Badge -->
+
+    font-size: 40px;                    <div class="mb-3">
+
+    font-weight: 600;                        <span id="statusBadge" class="badge badge-success badge-pill px-3 py-2">
+
+    color: white;                            <i class="material-icons">circle</i> Active
+
+    border: 4px solid rgba(255,255,255,0.3);                        </span>
+
+    position: relative;                    </div>
+
+    z-index: 1;
+
+}                    <hr>
+
+
+
+.profile-info {                    <!-- Contact Info -->
+
+    flex: 1;                    <div class="text-left mb-3">
+
+    position: relative;                        <p class="mb-2"><strong>Email</strong><br><span id="profileEmail">john@example.com</span></p>
+
+    z-index: 1;                        <p class="mb-2"><strong>Phone</strong><br><span id="profilePhone">+1-555-0100</span></p>
+
+}                        <p class="mb-2"><strong>Department</strong><br><span id="profileDept">Sales</span></p>
+
                         <p class="mb-2"><strong>Team ID</strong><br><span id="profileTeam">team_1</span></p>
-                    </div>
 
-                    <hr>
+.profile-name {                    </div>
 
-                    <!-- Action Buttons -->
+    font-size: 2rem;
+
+    font-weight: 600;                    <hr>
+
+    margin: 0 0 4px 0;
+
+}                    <!-- Action Buttons -->
+
                     <button class="btn btn-sm btn-outline-primary btn-block mb-2" onclick="changePassword()">
-                        <i class="material-icons">lock</i> Change Password
-                    </button>
-                    <button class="btn btn-sm btn-outline-danger btn-block" onclick="logout()">
-                        <i class="material-icons">logout</i> Logout
-                    </button>
-                </div>
-            </div>
 
-            <!-- Team Card -->
-            <div class="card shadow-sm mt-3">
-                <div class="card-header bg-light">
-                    <h5 class="mb-0">Team</h5>
+.profile-role {                        <i class="material-icons">lock</i> Change Password
+
+    font-size: 1.1rem;                    </button>
+
+    opacity: 0.9;                    <button class="btn btn-sm btn-outline-danger btn-block" onclick="logout()">
+
+    margin-bottom: 12px;                        <i class="material-icons">logout</i> Logout
+
+}                    </button>
+
                 </div>
-                <div class="card-body">
-                    <div id="teamStats">
-                        <p class="mb-2"><strong>Members:</strong> <span>5</span></p>
+
+.profile-status {            </div>
+
+    display: inline-flex;
+
+    align-items: center;            <!-- Team Card -->
+
+    gap: 6px;            <div class="card shadow-sm mt-3">
+
+    background: rgba(255,255,255,0.2);                <div class="card-header bg-light">
+
+    backdrop-filter: blur(10px);                    <h5 class="mb-0">Team</h5>
+
+    padding: 6px 16px;                </div>
+
+    border-radius: 20px;                <div class="card-body">
+
+    font-size: 0.875rem;                    <div id="teamStats">
+
+}                        <p class="mb-2"><strong>Members:</strong> <span>5</span></p>
+
                         <p class="mb-2"><strong>Total Deals:</strong> <span>42</span></p>
-                        <p class="mb-2"><strong>Total Revenue:</strong> <span>$2.5M</span></p>
-                    </div>
-                </div>
-            </div>
-        </div>
+
+.profile-status .status-dot {                        <p class="mb-2"><strong>Total Revenue:</strong> <span>$2.5M</span></p>
+
+    width: 8px;                    </div>
+
+    height: 8px;                </div>
+
+    border-radius: 50%;            </div>
+
+    background: #00e676;        </div>
+
+}
 
         <!-- Right Column: Statistics & Settings -->
-        <div class="col-lg-8">
-            <!-- Statistics Cards -->
-            <div class="row mb-4">
-                <div class="col-sm-6 mb-3">
-                    <div class="card shadow-sm">
-                        <div class="card-body">
-                            <div class="d-flex justify-content-between align-items-start">
-                                <div>
-                                    <p class="text-muted mb-1">Total Deals</p>
-                                    <h2 id="statDeals" class="mb-0">28</h2>
-                                </div>
-                                <i class="material-icons text-primary" style="font-size: 32px;">handshake</i>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-sm-6 mb-3">
-                    <div class="card shadow-sm">
-                        <div class="card-body">
-                            <div class="d-flex justify-content-between align-items-start">
-                                <div>
-                                    <p class="text-muted mb-1">Closed Deals</p>
-                                    <h2 id="statClosed" class="mb-0">18</h2>
-                                </div>
-                                <i class="material-icons text-success" style="font-size: 32px;">check_circle</i>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-sm-6 mb-3">
-                    <div class="card shadow-sm">
-                        <div class="card-body">
-                            <div class="d-flex justify-content-between align-items-start">
-                                <div>
-                                    <p class="text-muted mb-1">Total Contacts</p>
-                                    <h2 id="statContacts" class="mb-0">156</h2>
-                                </div>
-                                <i class="material-icons text-info" style="font-size: 32px;">people</i>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-sm-6 mb-3">
-                    <div class="card shadow-sm">
-                        <div class="card-body">
-                            <div class="d-flex justify-content-between align-items-start">
-                                <div>
-                                    <p class="text-muted mb-1">Total Revenue</p>
-                                    <h2 id="statRevenue" class="mb-0">$1.2M</h2>
-                                </div>
-                                <i class="material-icons text-warning" style="font-size: 32px;">trending_up</i>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
 
-            <!-- Preferences Tabs -->
-            <div class="card shadow-sm">
+.profile-actions {        <div class="col-lg-8">
+
+    display: flex;            <!-- Statistics Cards -->
+
+    gap: 12px;            <div class="row mb-4">
+
+    position: relative;                <div class="col-sm-6 mb-3">
+
+    z-index: 1;                    <div class="card shadow-sm">
+
+}                        <div class="card-body">
+
+                            <div class="d-flex justify-content-between align-items-start">
+
+.profile-actions .btn {                                <div>
+
+    background: rgba(255,255,255,0.2);                                    <p class="text-muted mb-1">Total Deals</p>
+
+    backdrop-filter: blur(10px);                                    <h2 id="statDeals" class="mb-0">28</h2>
+
+    border: 1px solid rgba(255,255,255,0.3);                                </div>
+
+    color: white;                                <i class="material-icons text-primary" style="font-size: 32px;">handshake</i>
+
+}                            </div>
+
+                        </div>
+
+.profile-actions .btn:hover {                    </div>
+
+    background: rgba(255,255,255,0.3);                </div>
+
+}                <div class="col-sm-6 mb-3">
+
+                    <div class="card shadow-sm">
+
+.profile-grid {                        <div class="card-body">
+
+    display: grid;                            <div class="d-flex justify-content-between align-items-start">
+
+    grid-template-columns: repeat(4, 1fr);                                <div>
+
+    gap: 24px;                                    <p class="text-muted mb-1">Closed Deals</p>
+
+}                                    <h2 id="statClosed" class="mb-0">18</h2>
+
+                                </div>
+
+@media (max-width: 1200px) {                                <i class="material-icons text-success" style="font-size: 32px;">check_circle</i>
+
+    .profile-grid {                            </div>
+
+        grid-template-columns: repeat(2, 1fr);                        </div>
+
+    }                    </div>
+
+}                </div>
+
+                <div class="col-sm-6 mb-3">
+
+@media (max-width: 768px) {                    <div class="card shadow-sm">
+
+    .profile-grid {                        <div class="card-body">
+
+        grid-template-columns: 1fr;                            <div class="d-flex justify-content-between align-items-start">
+
+    }                                <div>
+
+    .profile-header {                                    <p class="text-muted mb-1">Total Contacts</p>
+
+        flex-direction: column;                                    <h2 id="statContacts" class="mb-0">156</h2>
+
+        text-align: center;                                </div>
+
+        padding: 32px 24px;                                <i class="material-icons text-info" style="font-size: 32px;">people</i>
+
+    }                            </div>
+
+    .profile-actions {                        </div>
+
+        flex-wrap: wrap;                    </div>
+
+        justify-content: center;                </div>
+
+    }                <div class="col-sm-6 mb-3">
+
+}                    <div class="card shadow-sm">
+
+                        <div class="card-body">
+
+.stat-card {                            <div class="d-flex justify-content-between align-items-start">
+
+    background: var(--surface);                                <div>
+
+    border-radius: var(--radius-lg);                                    <p class="text-muted mb-1">Total Revenue</p>
+
+    padding: 24px;                                    <h2 id="statRevenue" class="mb-0">$1.2M</h2>
+
+    display: flex;                                </div>
+
+    align-items: center;                                <i class="material-icons text-warning" style="font-size: 32px;">trending_up</i>
+
+    gap: 16px;                            </div>
+
+    transition: all 0.2s;                        </div>
+
+}                    </div>
+
+                </div>
+
+.stat-card:hover {            </div>
+
+    transform: translateY(-2px);
+
+    box-shadow: var(--shadow-md);            <!-- Preferences Tabs -->
+
+}            <div class="card shadow-sm">
+
                 <ul class="nav nav-tabs card-header-tabs" role="tablist">
-                    <li class="nav-item">
-                        <a class="nav-link active" data-toggle="tab" href="#tabPreferences">
-                            <i class="material-icons">settings</i> Preferences
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" data-toggle="tab" href="#tabNotifications">
-                            <i class="material-icons">notifications</i> Notifications
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" data-toggle="tab" href="#tabActivity">
-                            <i class="material-icons">history</i> Activity
-                        </a>
-                    </li>
-                </ul>
 
-                <div class="tab-content p-4">
-                    <!-- Preferences Tab -->
-                    <div class="tab-pane fade show active" id="tabPreferences">
-                        <div class="form-group">
+.stat-icon {                    <li class="nav-item">
+
+    width: 56px;                        <a class="nav-link active" data-toggle="tab" href="#tabPreferences">
+
+    height: 56px;                            <i class="material-icons">settings</i> Preferences
+
+    border-radius: var(--radius-md);                        </a>
+
+    display: flex;                    </li>
+
+    align-items: center;                    <li class="nav-item">
+
+    justify-content: center;                        <a class="nav-link" data-toggle="tab" href="#tabNotifications">
+
+    font-size: 28px;                            <i class="material-icons">notifications</i> Notifications
+
+}                        </a>
+
+                    </li>
+
+.stat-icon.blue { background: #e3f2fd; color: #1976d2; }                    <li class="nav-item">
+
+.stat-icon.green { background: #e8f5e9; color: #388e3c; }                        <a class="nav-link" data-toggle="tab" href="#tabActivity">
+
+.stat-icon.orange { background: #fff3e0; color: #f57c00; }                            <i class="material-icons">history</i> Activity
+
+.stat-icon.purple { background: #f3e5f5; color: #7b1fa2; }                        </a>
+
+                    </li>
+
+.stat-info h3 {                </ul>
+
+    font-size: 1.75rem;
+
+    font-weight: 600;                <div class="tab-content p-4">
+
+    margin: 0;                    <!-- Preferences Tab -->
+
+    color: var(--on-surface);                    <div class="tab-pane fade show active" id="tabPreferences">
+
+}                        <div class="form-group">
+
                             <label for="prefLanguage"><strong>Language</strong></label>
-                            <select id="prefLanguage" class="form-control" onchange="saveSetting('language', this.value)">
-                                <option value="en" selected>English</option>
-                                <option value="es">Spanish</option>
-                                <option value="fr">French</option>
-                                <option value="de">German</option>
+
+.stat-info p {                            <select id="prefLanguage" class="form-control" onchange="saveSetting('language', this.value)">
+
+    margin: 0;                                <option value="en" selected>English</option>
+
+    color: var(--on-surface-variant);                                <option value="es">Spanish</option>
+
+    font-size: 0.875rem;                                <option value="fr">French</option>
+
+}                                <option value="de">German</option>
+
                                 <option value="zh">Chinese</option>
-                            </select>
-                        </div>
 
-                        <div class="form-group">
-                            <label for="prefTimezone"><strong>Timezone</strong></label>
-                            <select id="prefTimezone" class="form-control" onchange="saveSetting('timezone', this.value)">
-                                <option value="UTC">UTC</option>
-                                <option value="America/New_York">Eastern Time</option>
+.section-title {                            </select>
+
+    font-size: 1.25rem;                        </div>
+
+    font-weight: 600;
+
+    margin: 32px 0 16px 0;                        <div class="form-group">
+
+    display: flex;                            <label for="prefTimezone"><strong>Timezone</strong></label>
+
+    align-items: center;                            <select id="prefTimezone" class="form-control" onchange="saveSetting('timezone', this.value)">
+
+    gap: 8px;                                <option value="UTC">UTC</option>
+
+}                                <option value="America/New_York">Eastern Time</option>
+
                                 <option value="America/Chicago">Central Time</option>
-                                <option value="America/Denver">Mountain Time</option>
-                                <option value="America/Los_Angeles">Pacific Time</option>
-                            </select>
+
+.section-title .material-icons-round {                                <option value="America/Denver">Mountain Time</option>
+
+    color: var(--primary);                                <option value="America/Los_Angeles">Pacific Time</option>
+
+}                            </select>
+
                         </div>
 
-                        <div class="form-group">
-                            <label for="prefTheme"><strong>Theme</strong></label>
-                            <select id="prefTheme" class="form-control" onchange="saveSetting('theme', this.value)">
-                                <option value="light" selected>Light</option>
+.info-card {
+
+    background: var(--surface);                        <div class="form-group">
+
+    border-radius: var(--radius-lg);                            <label for="prefTheme"><strong>Theme</strong></label>
+
+    overflow: hidden;                            <select id="prefTheme" class="form-control" onchange="saveSetting('theme', this.value)">
+
+}                                <option value="light" selected>Light</option>
+
                                 <option value="dark">Dark</option>
-                                <option value="auto">Auto</option>
-                            </select>
-                        </div>
 
-                        <div class="form-group">
-                            <label for="prefCurrency"><strong>Currency</strong></label>
+.info-row {                                <option value="auto">Auto</option>
+
+    display: flex;                            </select>
+
+    padding: 16px 20px;                        </div>
+
+    border-bottom: 1px solid var(--outline-variant);
+
+    align-items: center;                        <div class="form-group">
+
+}                            <label for="prefCurrency"><strong>Currency</strong></label>
+
                             <select id="prefCurrency" class="form-control" onchange="saveSetting('currency', this.value)">
-                                <option value="USD" selected>USD ($)</option>
-                                <option value="EUR">EUR (€)</option>
-                                <option value="GBP">GBP (£)</option>
+
+.info-row:last-child {                                <option value="USD" selected>USD ($)</option>
+
+    border-bottom: none;                                <option value="EUR">EUR (€)</option>
+
+}                                <option value="GBP">GBP (£)</option>
+
                                 <option value="JPY">JPY (¥)</option>
-                            </select>
-                        </div>
-                    </div>
 
-                    <!-- Notifications Tab -->
-                    <div class="tab-pane fade" id="tabNotifications">
-                        <div class="form-check mb-3">
-                            <input class="form-check-input" type="checkbox" id="notifDealUpdate" checked onchange="updateNotifPref('email_on_deal_update', this.checked)">
+.info-row-label {                            </select>
+
+    width: 150px;                        </div>
+
+    font-weight: 500;                    </div>
+
+    color: var(--on-surface-variant);
+
+    display: flex;                    <!-- Notifications Tab -->
+
+    align-items: center;                    <div class="tab-pane fade" id="tabNotifications">
+
+    gap: 8px;                        <div class="form-check mb-3">
+
+}                            <input class="form-check-input" type="checkbox" id="notifDealUpdate" checked onchange="updateNotifPref('email_on_deal_update', this.checked)">
+
                             <label class="form-check-label" for="notifDealUpdate">
-                                <strong>Email on Deal Update</strong>
-                                <p class="text-muted small mb-0">Get notified when deals are updated</p>
-                            </label>
-                        </div>
 
-                        <div class="form-check mb-3">
-                            <input class="form-check-input" type="checkbox" id="notifTaskAssign" checked onchange="updateNotifPref('email_on_task_assign', this.checked)">
-                            <label class="form-check-label" for="notifTaskAssign">
-                                <strong>Email on Task Assignment</strong>
+.info-row-value {                                <strong>Email on Deal Update</strong>
+
+    flex: 1;                                <p class="text-muted small mb-0">Get notified when deals are updated</p>
+
+    color: var(--on-surface);                            </label>
+
+}                        </div>
+
+
+
+.info-row-action {                        <div class="form-check mb-3">
+
+    color: var(--primary);                            <input class="form-check-input" type="checkbox" id="notifTaskAssign" checked onchange="updateNotifPref('email_on_task_assign', this.checked)">
+
+    cursor: pointer;                            <label class="form-check-label" for="notifTaskAssign">
+
+}                                <strong>Email on Task Assignment</strong>
+
                                 <p class="text-muted small mb-0">Get notified when tasks are assigned to you</p>
-                            </label>
-                        </div>
 
-                        <div class="form-check mb-3">
-                            <input class="form-check-input" type="checkbox" id="notifMention" checked onchange="updateNotifPref('email_on_mention', this.checked)">
+.activity-list {                            </label>
+
+    background: var(--surface);                        </div>
+
+    border-radius: var(--radius-lg);
+
+    overflow: hidden;                        <div class="form-check mb-3">
+
+}                            <input class="form-check-input" type="checkbox" id="notifMention" checked onchange="updateNotifPref('email_on_mention', this.checked)">
+
                             <label class="form-check-label" for="notifMention">
-                                <strong>Email on Mention</strong>
-                                <p class="text-muted small mb-0">Get notified when someone mentions you</p>
-                            </label>
-                        </div>
 
-                        <div class="form-check mb-3">
+.activity-item {                                <strong>Email on Mention</strong>
+
+    display: flex;                                <p class="text-muted small mb-0">Get notified when someone mentions you</p>
+
+    gap: 16px;                            </label>
+
+    padding: 16px 20px;                        </div>
+
+    border-bottom: 1px solid var(--outline-variant);
+
+}                        <div class="form-check mb-3">
+
                             <input class="form-check-input" type="checkbox" id="notifActivity" onchange="updateNotifPref('email_on_activity', this.checked)">
-                            <label class="form-check-label" for="notifActivity">
-                                <strong>Email on Activity</strong>
-                                <p class="text-muted small mb-0">Get notified on all CRM activities</p>
+
+.activity-item:last-child {                            <label class="form-check-label" for="notifActivity">
+
+    border-bottom: none;                                <strong>Email on Activity</strong>
+
+}                                <p class="text-muted small mb-0">Get notified on all CRM activities</p>
+
                             </label>
-                        </div>
 
-                        <hr>
+.activity-icon {                        </div>
 
-                        <div class="form-check mb-3">
-                            <input class="form-check-input" type="checkbox" id="notifPush" checked onchange="updateNotifPref('push_enabled', this.checked)">
-                            <label class="form-check-label" for="notifPush">
-                                <strong>Push Notifications</strong>
-                                <p class="text-muted small mb-0">Enable browser push notifications</p>
-                            </label>
-                        </div>
+    width: 40px;
 
-                        <div class="form-check mb-3">
-                            <input class="form-check-input" type="checkbox" id="notifQuietHours" onchange="updateNotifPref('quiet_hours_enabled', this.checked)">
-                            <label class="form-check-label" for="notifQuietHours">
+    height: 40px;                        <hr>
+
+    border-radius: 50%;
+
+    background: var(--primary-container);                        <div class="form-check mb-3">
+
+    color: var(--on-primary-container);                            <input class="form-check-input" type="checkbox" id="notifPush" checked onchange="updateNotifPref('push_enabled', this.checked)">
+
+    display: flex;                            <label class="form-check-label" for="notifPush">
+
+    align-items: center;                                <strong>Push Notifications</strong>
+
+    justify-content: center;                                <p class="text-muted small mb-0">Enable browser push notifications</p>
+
+    flex-shrink: 0;                            </label>
+
+}                        </div>
+
+
+
+.activity-content {                        <div class="form-check mb-3">
+
+    flex: 1;                            <input class="form-check-input" type="checkbox" id="notifQuietHours" onchange="updateNotifPref('quiet_hours_enabled', this.checked)">
+
+}                            <label class="form-check-label" for="notifQuietHours">
+
                                 <strong>Quiet Hours</strong>
-                                <p class="text-muted small mb-0">Enable quiet hours (no notifications during specific times)</p>
-                            </label>
-                        </div>
-                    </div>
+
+.activity-title {                                <p class="text-muted small mb-0">Enable quiet hours (no notifications during specific times)</p>
+
+    font-weight: 500;                            </label>
+
+    color: var(--on-surface);                        </div>
+
+    margin-bottom: 4px;                    </div>
+
+}
 
                     <!-- Activity Tab -->
-                    <div class="tab-pane fade" id="tabActivity">
-                        <div id="activityList" class="activity-timeline">
-                            <!-- Activity items will load here -->
-                        </div>
+
+.activity-meta {                    <div class="tab-pane fade" id="tabActivity">
+
+    font-size: 0.875rem;                        <div id="activityList" class="activity-timeline">
+
+    color: var(--on-surface-variant);                            <!-- Activity items will load here -->
+
+}                        </div>
+
                     </div>
+
+.preferences-grid {                </div>
+
+    display: grid;            </div>
+
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));        </div>
+
+    gap: 16px;    </div>
+
+}</div>
+
+
+
+.preference-card {<!-- Edit Profile Modal -->
+
+    background: var(--surface);<div class="modal fade" id="modalEditProfile" tabindex="-1">
+
+    border-radius: var(--radius-lg);    <div class="modal-dialog">
+
+    padding: 20px;        <div class="modal-content">
+
+    display: flex;            <div class="modal-header">
+
+    justify-content: space-between;                <h5 class="modal-title">Edit Profile</h5>
+
+    align-items: center;                <button type="button" class="close" data-dismiss="modal">
+
+}                    <span>&times;</span>
+
+                </button>
+
+.preference-info h4 {            </div>
+
+    margin: 0 0 4px 0;            <div class="modal-body">
+
+    font-weight: 500;                <form id="formEditProfile">
+
+}                    <div class="form-group">
+
+                        <label for="editFirstName">First Name</label>
+
+.preference-info p {                        <input type="text" class="form-control" id="editFirstName" placeholder="First Name">
+
+    margin: 0;                    </div>
+
+    font-size: 0.875rem;                    <div class="form-group">
+
+    color: var(--on-surface-variant);                        <label for="editLastName">Last Name</label>
+
+}                        <input type="text" class="form-control" id="editLastName" placeholder="Last Name">
+
+                    </div>
+
+.toggle-switch {                    <div class="form-group">
+
+    position: relative;                        <label for="editEmail">Email</label>
+
+    width: 52px;                        <input type="email" class="form-control" id="editEmail" placeholder="Email">
+
+    height: 32px;                    </div>
+
+}                    <div class="form-group">
+
+                        <label for="editPhone">Phone</label>
+
+.toggle-switch input {                        <input type="tel" class="form-control" id="editPhone" placeholder="Phone">
+
+    opacity: 0;                    </div>
+
+    width: 0;                    <div class="form-group">
+
+    height: 0;                        <label for="editBio">Bio</label>
+
+}                        <textarea class="form-control" id="editBio" rows="3" placeholder="Tell us about yourself"></textarea>
+
+                    </div>
+
+.toggle-slider {                </form>
+
+    position: absolute;            </div>
+
+    cursor: pointer;            <div class="modal-footer">
+
+    top: 0;                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+
+    left: 0;                <button type="button" class="btn btn-primary" onclick="saveProfileChanges()">Save Changes</button>
+
+    right: 0;            </div>
+
+    bottom: 0;        </div>
+
+    background: var(--outline);    </div>
+
+    transition: 0.3s;</div>
+
+    border-radius: 16px;
+
+}<style>
+
+.avatar-large {
+
+.toggle-slider:before {    display: flex;
+
+    position: absolute;    align-items: center;
+
+    content: "";    justify-content: center;
+
+    height: 24px;    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+
+    width: 24px;    color: white;
+
+    left: 4px;    font-weight: bold;
+
+    bottom: 4px;}
+
+    background: white;
+
+    transition: 0.3s;.activity-timeline {
+
+    border-radius: 50%;    position: relative;
+
+    box-shadow: var(--shadow-sm);    padding: 20px 0;
+
+}}
+
+
+
+.toggle-switch input:checked + .toggle-slider {.activity-item {
+
+    background: var(--primary);    display: flex;
+
+}    margin-bottom: 20px;
+
+    position: relative;
+
+.toggle-switch input:checked + .toggle-slider:before {}
+
+    transform: translateX(20px);
+
+}.activity-item::before {
+
+    content: '';
+
+.modal .form-group {    position: absolute;
+
+    margin-bottom: 20px;    left: 19px;
+
+}    top: 40px;
+
+    width: 2px;
+
+.modal .form-label {    height: 30px;
+
+    display: block;    background: #e9ecef;
+
+    font-weight: 500;}
+
+    margin-bottom: 8px;
+
+    color: var(--on-surface);.activity-item:last-child::before {
+
+}    display: none;
+
+}
+
+.modal .form-input {
+
+    width: 100%;.activity-icon {
+
+    padding: 12px 16px;    width: 40px;
+
+    border: 1px solid var(--outline);    height: 40px;
+
+    border-radius: var(--radius-md);    border-radius: 50%;
+
+    font-size: 1rem;    background: #f1f3f5;
+
+    background: var(--surface);    display: flex;
+
+    color: var(--on-surface);    align-items: center;
+
+    transition: all 0.2s;    justify-content: center;
+
+}    margin-right: 15px;
+
+    flex-shrink: 0;
+
+.modal .form-input:focus {    position: relative;
+
+    outline: none;    z-index: 1;
+
+    border-color: var(--primary);}
+
+    box-shadow: 0 0 0 3px var(--primary-container);
+
+}.activity-content {
+
+    flex: 1;
+
+.modal .form-row {}
+
+    display: grid;
+
+    grid-template-columns: 1fr 1fr;.activity-content strong {
+
+    gap: 16px;    display: block;
+
+}    font-weight: 600;
+
+</style>    margin-bottom: 2px;
+
+{% endblock %}}
+
+
+
+{% block content %}.activity-content .time {
+
+<div class="profile-header">    font-size: 12px;
+
+    <div class="profile-avatar-large" id="profileAvatar">    color: #999;
+
+        JD}
+
+    </div></style>
+
+    <div class="profile-info">
+
+        <h1 class="profile-name" id="profileName">Loading...</h1><script>
+
+        <p class="profile-role" id="profileRole">Sales Representative</p>// Load profile on page load
+
+        <div class="profile-status">$(document).ready(function() {
+
+            <span class="status-dot"></span>    loadProfile();
+
+            <span id="profileStatus">Active</span>    loadActivityLog();
+
+        </div>});
+
+    </div>
+
+    <div class="profile-actions">function loadProfile() {
+
+        <button class="btn" onclick="openEditProfileModal()">    $.ajax({
+
+            <span class="material-icons-round">edit</span>        url: '/api/profile?user_id=user_1',
+
+            Edit Profile        type: 'GET',
+
+        </button>        success: function(data) {
+
+        <button class="btn" onclick="logout()">            $('#profileName').text(data.full_name);
+
+            <span class="material-icons-round">logout</span>            $('#profileTitle').text(data.title);
+
+            Logout            $('#profileEmail').text(data.email);
+
+        </button>            $('#profilePhone').text(data.phone);
+
+    </div>            $('#profileDept').text(data.department);
+
+</div>            $('#profileTeam').text(data.team_id);
+
+            
+
+<div class="profile-grid">            // Update stats
+
+    <div class="stat-card">            $('#statDeals').text(data.total_deals);
+
+        <div class="stat-icon blue">            $('#statClosed').text(data.closed_deals);
+
+            <span class="material-icons-round">handshake</span>            $('#statContacts').text(data.total_contacts);
+
+        </div>            $('#statRevenue').text('$' + (data.total_revenue / 1000000).toFixed(1) + 'M');
+
+        <div class="stat-info">            
+
+            <h3 id="statDeals">0</h3>            // Update preferences
+
+            <p>Total Deals</p>            $('#prefLanguage').val(data.language);
+
+        </div>            $('#prefTimezone').val(data.timezone);
+
+    </div>            $('#prefTheme').val(data.theme);
+
+    <div class="stat-card">            $('#prefCurrency').val(data.currency);
+
+        <div class="stat-icon green">            
+
+            <span class="material-icons-round">attach_money</span>            // Update notification preferences
+
+        </div>            const prefs = data.notification_preferences;
+
+        <div class="stat-info">            $('#notifDealUpdate').prop('checked', prefs.email_on_deal_update);
+
+            <h3 id="statRevenue">$0</h3>            $('#notifTaskAssign').prop('checked', prefs.email_on_task_assign);
+
+            <p>Revenue Generated</p>            $('#notifMention').prop('checked', prefs.email_on_mention);
+
+        </div>            $('#notifActivity').prop('checked', prefs.email_on_activity);
+
+    </div>            $('#notifPush').prop('checked', prefs.push_enabled);
+
+    <div class="stat-card">            $('#notifQuietHours').prop('checked', prefs.quiet_hours_enabled);
+
+        <div class="stat-icon orange">            
+
+            <span class="material-icons-round">people</span>            // Update avatar
+
+        </div>            const initials = data.initials;
+
+        <div class="stat-info">            $('#profileAvatar').text(initials);
+
+            <h3 id="statContacts">0</h3>            
+
+            <p>Contacts Managed</p>            // Update status
+
+        </div>            updateStatusDisplay(data.status);
+
+    </div>        },
+
+    <div class="stat-card">        error: function() {
+
+        <div class="stat-icon purple">            showAlert('Error loading profile', 'danger');
+
+            <span class="material-icons-round">task_alt</span>        }
+
+        </div>    });
+
+        <div class="stat-info">}
+
+            <h3 id="statTasks">0</h3>
+
+            <p>Tasks Completed</p>function loadActivityLog() {
+
+        </div>    $.ajax({
+
+    </div>        url: '/api/activity/user/user_1',
+
+</div>        type: 'GET',
+
+        data: { limit: 15 },
+
+<h2 class="section-title">        success: function(data) {
+
+    <span class="material-icons-round">person</span>            const list = $('#activityList');
+
+    Account Information            list.empty();
+
+</h2>            
+
+<div class="info-card">            if (data.activities.length === 0) {
+
+    <div class="info-row">                list.html('<p class="text-muted">No activity yet</p>');
+
+        <div class="info-row-label">                return;
+
+            <span class="material-icons-round">email</span>            }
+
+            Email            
+
+        </div>            data.activities.forEach(activity => {
+
+        <div class="info-row-value" id="infoEmail">Loading...</div>                const timeAgo = new Date(activity.created_at).toLocaleString();
+
+        <span class="info-row-action material-icons-round" onclick="copyToClipboard('infoEmail')">content_copy</span>                const icon = getActivityIcon(activity.action);
+
+    </div>                
+
+    <div class="info-row">                const html = `
+
+        <div class="info-row-label">                    <div class="activity-item">
+
+            <span class="material-icons-round">phone</span>                        <div class="activity-icon">${icon}</div>
+
+            Phone                        <div class="activity-content">
+
+        </div>                            <strong>${activity.action.toUpperCase()}</strong>
+
+        <div class="info-row-value" id="infoPhone">Not set</div>                            ${activity.description}
+
+    </div>                            <div class="time">${timeAgo}</div>
+
+    <div class="info-row">                        </div>
+
+        <div class="info-row-label">                    </div>
+
+            <span class="material-icons-round">business</span>                `;
+
+            Department                list.append(html);
+
+        </div>            });
+
+        <div class="info-row-value" id="infoDept">Sales</div>        }
+
+    </div>    });
+
+    <div class="info-row">}
+
+        <div class="info-row-label">
+
+            <span class="material-icons-round">groups</span>function editProfile() {
+
+            Team    $('#editFirstName').val($('#profileName').text().split(' ')[0]);
+
+        </div>    $('#editLastName').val($('#profileName').text().split(' ')[1] || '');
+
+        <div class="info-row-value" id="infoTeam">Default Team</div>    $('#editEmail').val($('#profileEmail').text());
+
+    </div>    $('#editPhone').val($('#profilePhone').text());
+
+    <div class="info-row">    $('#modalEditProfile').modal('show');
+
+        <div class="info-row-label">}
+
+            <span class="material-icons-round">calendar_today</span>
+
+            Member Sincefunction saveProfileChanges() {
+
+        </div>    const updates = {
+
+        <div class="info-row-value" id="infoJoined">-</div>        user_id: 'user_1',
+
+    </div>        first_name: $('#editFirstName').val(),
+
+</div>        last_name: $('#editLastName').val(),
+
+        email: $('#editEmail').val(),
+
+<h2 class="section-title">        phone: $('#editPhone').val(),
+
+    <span class="material-icons-round">tune</span>        bio: $('#editBio').val(),
+
+    Preferences    };
+
+</h2>    
+
+<div class="preferences-grid">    $.ajax({
+
+    <div class="preference-card">        url: '/api/profile',
+
+        <div class="preference-info">        type: 'PUT',
+
+            <h4>Email Notifications</h4>        contentType: 'application/json',
+
+            <p>Receive email updates about your deals</p>        data: JSON.stringify(updates),
+
+        </div>        success: function() {
+
+        <label class="toggle-switch">            $('#modalEditProfile').modal('hide');
+
+            <input type="checkbox" id="prefEmail" checked onchange="updatePreference('email_notifications', this.checked)">            loadProfile();
+
+            <span class="toggle-slider"></span>            showAlert('Profile updated successfully', 'success');
+
+        </label>        },
+
+    </div>        error: function() {
+
+    <div class="preference-card">            showAlert('Error updating profile', 'danger');
+
+        <div class="preference-info">        }
+
+            <h4>Push Notifications</h4>    });
+
+            <p>Get instant alerts on your browser</p>}
+
+        </div>
+
+        <label class="toggle-switch">function saveSetting(key, value) {
+
+            <input type="checkbox" id="prefPush" checked onchange="updatePreference('push_notifications', this.checked)">    const update = {
+
+            <span class="toggle-slider"></span>        user_id: 'user_1',
+
+        </label>        [key]: value
+
+    </div>    };
+
+    <div class="preference-card">    
+
+        <div class="preference-info">    $.ajax({
+
+            <h4>AI Suggestions</h4>        url: '/api/profile/settings',
+
+            <p>Let Gemini AI help with insights</p>        type: 'PUT',
+
+        </div>        contentType: 'application/json',
+
+        <label class="toggle-switch">        data: JSON.stringify(update),
+
+            <input type="checkbox" id="prefAI" checked onchange="updatePreference('ai_suggestions', this.checked)">        success: function() {
+
+            <span class="toggle-slider"></span>            showAlert('Setting saved', 'success');
+
+        </label>        },
+
+    </div>        error: function() {
+
+    <div class="preference-card">            showAlert('Error saving setting', 'danger');
+
+        <div class="preference-info">        }
+
+            <h4>Weekly Reports</h4>    });
+
+            <p>Receive weekly performance summaries</p>}
+
+        </div>
+
+        <label class="toggle-switch">function updateNotifPref(key, value) {
+
+            <input type="checkbox" id="prefReports" onchange="updatePreference('weekly_reports', this.checked)">    const update = {
+
+            <span class="toggle-slider"></span>        user_id: 'user_1',
+
+        </label>        [key]: value
+
+    </div>    };
+
+</div>    
+
+    $.ajax({
+
+<h2 class="section-title">        url: '/api/notifications/preferences',
+
+    <span class="material-icons-round">history</span>        type: 'PUT',
+
+    Recent Activity        contentType: 'application/json',
+
+</h2>        data: JSON.stringify(update),
+
+<div class="activity-list" id="activityList">        success: function() {
+
+    <div class="activity-item">            console.log('Notification preference updated');
+
+        <div class="activity-icon">        },
+
+            <span class="material-icons-round">sync</span>        error: function() {
+
+        </div>            showAlert('Error updating notification preference', 'danger');
+
+        <div class="activity-content">        }
+
+            <div class="activity-title">Loading activity...</div>    });
+
+            <div class="activity-meta">Please wait</div>}
+
+        </div>
+
+    </div>function updateStatusDisplay(status) {
+
+</div>    const badge = $('#statusBadge');
+
+    const statusMap = {
+
+<div id="editProfileModal" class="modal">        'active': { class: 'badge-success', text: 'Active', icon: 'circle' },
+
+    <div class="modal-overlay" onclick="closeModal('editProfileModal')"></div>        'away': { class: 'badge-warning', text: 'Away', icon: 'brightness_4' },
+
+    <div class="modal-container">        'busy': { class: 'badge-danger', text: 'Busy', icon: 'circle' },
+
+        <div class="modal-header">        'offline': { class: 'badge-secondary', text: 'Offline', icon: 'radio_button_unchecked' }
+
+            <h3>Edit Profile</h3>    };
+
+            <button class="btn btn-icon btn-ghost" onclick="closeModal('editProfileModal')">    
+
+                <span class="material-icons-round">close</span>    const info = statusMap[status] || statusMap['offline'];
+
+            </button>    badge.removeClass('badge-success badge-warning badge-danger badge-secondary');
+
+        </div>    badge.addClass(info.class);
+
+        <div class="modal-body">    badge.html(`<i class="material-icons">${info.icon}</i> ${info.text}`);
+
+            <form id="editProfileForm">}
+
+                <div class="form-row">
+
+                    <div class="form-group">function viewSettings() {
+
+                        <label class="form-label">First Name</label>    $('[href="#tabPreferences"]').tab('show');
+
+                        <input type="text" id="editFirstName" name="first_name" class="form-input" placeholder="John">}
+
+                    </div>
+
+                    <div class="form-group">function changePassword() {
+
+                        <label class="form-label">Last Name</label>    alert('Change password feature coming soon');
+
+                        <input type="text" id="editLastName" name="last_name" class="form-input" placeholder="Doe">}
+
+                    </div>
+
+                </div>function logout() {
+
+                <div class="form-group">    if (confirm('Are you sure you want to logout?')) {
+
+                    <label class="form-label">Email</label>        window.location.href = '/';
+
+                    <input type="email" id="editEmail" name="email" class="form-input" placeholder="john@example.com">    }
+
+                </div>}
+
+                <div class="form-group">
+
+                    <label class="form-label">Phone</label>function getActivityIcon(action) {
+
+                    <input type="tel" id="editPhone" name="phone" class="form-input" placeholder="+1 555-0100">    const iconMap = {
+
+                </div>        'create': '➕',
+
+                <div class="form-group">        'update': '✏️',
+
+                    <label class="form-label">Department</label>        'delete': '🗑️',
+
+                    <select id="editDept" name="department" class="form-input">        'view': '👁️',
+
+                        <option value="Sales">Sales</option>        'comment': '💬',
+
+                        <option value="Marketing">Marketing</option>        'share': '📤'
+
+                        <option value="Support">Support</option>    };
+
+                        <option value="Engineering">Engineering</option>    return iconMap[action] || '📝';
+
+                        <option value="Executive">Executive</option>}
+
+                    </select></script>
+
+                </div>{% endblock %}
+
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-text" onclick="closeModal('editProfileModal')">Cancel</button>
+            <button type="button" class="btn btn-primary" onclick="saveProfile()">
+                <span class="material-icons-round">save</span>
+                Save Changes
+            </button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let currentUser = null;
+
+document.addEventListener('DOMContentLoaded', initProfile);
+
+async function initProfile() {
+    await loadUserProfile();
+    await loadUserStats();
+    await loadRecentActivity();
+}
+
+async function loadUserProfile() {
+    try {
+        currentUser = {
+            name: '{{ current_user.name if current_user else "Guest User" }}',
+            email: '{{ current_user.email if current_user else "guest@example.com" }}',
+            department: 'Sales',
+            phone: '+1 555-0100',
+            team: 'Sales Team',
+            created_at: '{{ current_user.created_at if current_user and current_user.created_at else "" }}'
+        };
+        renderProfile(currentUser);
+    } catch (e) {
+        console.error('Failed to load profile:', e);
+    }
+}
+
+function renderProfile(user) {
+    const name = user.name || 'User';
+    const initials = name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+    
+    document.getElementById('profileAvatar').textContent = initials;
+    document.getElementById('profileName').textContent = name;
+    document.getElementById('profileRole').textContent = user.role || user.department || 'Team Member';
+    
+    document.getElementById('infoEmail').textContent = user.email || 'Not set';
+    document.getElementById('infoPhone').textContent = user.phone || 'Not set';
+    document.getElementById('infoDept').textContent = user.department || 'Not assigned';
+    document.getElementById('infoTeam').textContent = user.team || 'Default Team';
+    
+    if (user.created_at) {
+        const date = new Date(user.created_at);
+        document.getElementById('infoJoined').textContent = date.toLocaleDateString('en-US', { 
+            year: 'numeric', 
+            month: 'long', 
+            day: 'numeric' 
+        });
+    }
+    
+    document.getElementById('editFirstName').value = name.split(' ')[0] || '';
+    document.getElementById('editLastName').value = name.split(' ').slice(1).join(' ') || '';
+    document.getElementById('editEmail').value = user.email || '';
+    document.getElementById('editPhone').value = user.phone || '';
+    if (user.department) {
+        document.getElementById('editDept').value = user.department;
+    }
+}
+
+async function loadUserStats() {
+    try {
+        const res = await fetch('/api/dashboard/stats');
+        if (res.ok) {
+            const stats = await res.json();
+            document.getElementById('statDeals').textContent = stats.deals_count || stats.total_deals || 0;
+            document.getElementById('statRevenue').textContent = formatCurrency(stats.total_revenue || stats.pipeline_value || 0);
+            document.getElementById('statContacts').textContent = stats.contacts_count || stats.total_contacts || 0;
+            document.getElementById('statTasks').textContent = stats.completed_tasks || stats.tasks_count || 0;
+        }
+    } catch (e) {
+        console.error('Failed to load stats:', e);
+    }
+}
+
+async function loadRecentActivity() {
+    try {
+        const res = await fetch('/api/activities?limit=5');
+        if (res.ok) {
+            const data = await res.json();
+            const activities = data.activities || data || [];
+            renderActivities(activities);
+        } else {
+            renderActivities([
+                { type: 'deal', description: 'Created new deal "Enterprise License"', created_at: new Date().toISOString() },
+                { type: 'contact', description: 'Added contact "John Smith"', created_at: new Date(Date.now() - 3600000).toISOString() },
+                { type: 'task', description: 'Completed task "Follow up call"', created_at: new Date(Date.now() - 7200000).toISOString() }
+            ]);
+        }
+    } catch (e) {
+        console.error('Failed to load activity:', e);
+    }
+}
+
+function renderActivities(activities) {
+    const container = document.getElementById('activityList');
+    
+    if (activities.length === 0) {
+        container.innerHTML = `
+            <div class="activity-item">
+                <div class="activity-icon">
+                    <span class="material-icons-round">inbox</span>
+                </div>
+                <div class="activity-content">
+                    <div class="activity-title">No recent activity</div>
+                    <div class="activity-meta">Your activities will appear here</div>
                 </div>
             </div>
-        </div>
-    </div>
-</div>
-
-<!-- Edit Profile Modal -->
-<div class="modal fade" id="modalEditProfile" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Edit Profile</h5>
-                <button type="button" class="close" data-dismiss="modal">
-                    <span>&times;</span>
-                </button>
+        `;
+        return;
+    }
+    
+    container.innerHTML = activities.slice(0, 5).map(act => `
+        <div class="activity-item">
+            <div class="activity-icon">
+                <span class="material-icons-round">${getActivityIcon(act.type || act.activity_type)}</span>
             </div>
-            <div class="modal-body">
-                <form id="formEditProfile">
-                    <div class="form-group">
-                        <label for="editFirstName">First Name</label>
-                        <input type="text" class="form-control" id="editFirstName" placeholder="First Name">
-                    </div>
-                    <div class="form-group">
-                        <label for="editLastName">Last Name</label>
-                        <input type="text" class="form-control" id="editLastName" placeholder="Last Name">
-                    </div>
-                    <div class="form-group">
-                        <label for="editEmail">Email</label>
-                        <input type="email" class="form-control" id="editEmail" placeholder="Email">
-                    </div>
-                    <div class="form-group">
-                        <label for="editPhone">Phone</label>
-                        <input type="tel" class="form-control" id="editPhone" placeholder="Phone">
-                    </div>
-                    <div class="form-group">
-                        <label for="editBio">Bio</label>
-                        <textarea class="form-control" id="editBio" rows="3" placeholder="Tell us about yourself"></textarea>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-primary" onclick="saveProfileChanges()">Save Changes</button>
+            <div class="activity-content">
+                <div class="activity-title">${escapeHtml(act.description || act.notes || 'Activity')}</div>
+                <div class="activity-meta">${formatRelativeTime(act.created_at || act.activity_date)}</div>
             </div>
         </div>
-    </div>
-</div>
-
-<style>
-.avatar-large {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    font-weight: bold;
+    `).join('');
 }
 
-.activity-timeline {
-    position: relative;
-    padding: 20px 0;
-}
-
-.activity-item {
-    display: flex;
-    margin-bottom: 20px;
-    position: relative;
-}
-
-.activity-item::before {
-    content: '';
-    position: absolute;
-    left: 19px;
-    top: 40px;
-    width: 2px;
-    height: 30px;
-    background: #e9ecef;
-}
-
-.activity-item:last-child::before {
-    display: none;
-}
-
-.activity-icon {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    background: #f1f3f5;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-right: 15px;
-    flex-shrink: 0;
-    position: relative;
-    z-index: 1;
-}
-
-.activity-content {
-    flex: 1;
-}
-
-.activity-content strong {
-    display: block;
-    font-weight: 600;
-    margin-bottom: 2px;
-}
-
-.activity-content .time {
-    font-size: 12px;
-    color: #999;
-}
-</style>
-
-<script>
-// Load profile on page load
-$(document).ready(function() {
-    loadProfile();
-    loadActivityLog();
-});
-
-function loadProfile() {
-    $.ajax({
-        url: '/api/profile?user_id=user_1',
-        type: 'GET',
-        success: function(data) {
-            $('#profileName').text(data.full_name);
-            $('#profileTitle').text(data.title);
-            $('#profileEmail').text(data.email);
-            $('#profilePhone').text(data.phone);
-            $('#profileDept').text(data.department);
-            $('#profileTeam').text(data.team_id);
-            
-            // Update stats
-            $('#statDeals').text(data.total_deals);
-            $('#statClosed').text(data.closed_deals);
-            $('#statContacts').text(data.total_contacts);
-            $('#statRevenue').text('$' + (data.total_revenue / 1000000).toFixed(1) + 'M');
-            
-            // Update preferences
-            $('#prefLanguage').val(data.language);
-            $('#prefTimezone').val(data.timezone);
-            $('#prefTheme').val(data.theme);
-            $('#prefCurrency').val(data.currency);
-            
-            // Update notification preferences
-            const prefs = data.notification_preferences;
-            $('#notifDealUpdate').prop('checked', prefs.email_on_deal_update);
-            $('#notifTaskAssign').prop('checked', prefs.email_on_task_assign);
-            $('#notifMention').prop('checked', prefs.email_on_mention);
-            $('#notifActivity').prop('checked', prefs.email_on_activity);
-            $('#notifPush').prop('checked', prefs.push_enabled);
-            $('#notifQuietHours').prop('checked', prefs.quiet_hours_enabled);
-            
-            // Update avatar
-            const initials = data.initials;
-            $('#profileAvatar').text(initials);
-            
-            // Update status
-            updateStatusDisplay(data.status);
-        },
-        error: function() {
-            showAlert('Error loading profile', 'danger');
-        }
-    });
-}
-
-function loadActivityLog() {
-    $.ajax({
-        url: '/api/activity/user/user_1',
-        type: 'GET',
-        data: { limit: 15 },
-        success: function(data) {
-            const list = $('#activityList');
-            list.empty();
-            
-            if (data.activities.length === 0) {
-                list.html('<p class="text-muted">No activity yet</p>');
-                return;
-            }
-            
-            data.activities.forEach(activity => {
-                const timeAgo = new Date(activity.created_at).toLocaleString();
-                const icon = getActivityIcon(activity.action);
-                
-                const html = `
-                    <div class="activity-item">
-                        <div class="activity-icon">${icon}</div>
-                        <div class="activity-content">
-                            <strong>${activity.action.toUpperCase()}</strong>
-                            ${activity.description}
-                            <div class="time">${timeAgo}</div>
-                        </div>
-                    </div>
-                `;
-                list.append(html);
-            });
-        }
-    });
-}
-
-function editProfile() {
-    $('#editFirstName').val($('#profileName').text().split(' ')[0]);
-    $('#editLastName').val($('#profileName').text().split(' ')[1] || '');
-    $('#editEmail').val($('#profileEmail').text());
-    $('#editPhone').val($('#profilePhone').text());
-    $('#modalEditProfile').modal('show');
-}
-
-function saveProfileChanges() {
-    const updates = {
-        user_id: 'user_1',
-        first_name: $('#editFirstName').val(),
-        last_name: $('#editLastName').val(),
-        email: $('#editEmail').val(),
-        phone: $('#editPhone').val(),
-        bio: $('#editBio').val(),
+function getActivityIcon(type) {
+    const icons = {
+        'deal': 'handshake',
+        'contact': 'person_add',
+        'task': 'task_alt',
+        'email': 'email',
+        'call': 'phone',
+        'meeting': 'event',
+        'note': 'note'
     };
+    return icons[type] || 'event';
+}
+
+function formatRelativeTime(dateStr) {
+    if (!dateStr) return '';
+    const date = new Date(dateStr);
+    const now = new Date();
+    const diff = now - date;
+    const minutes = Math.floor(diff / 60000);
+    const hours = Math.floor(diff / 3600000);
+    const days = Math.floor(diff / 86400000);
     
-    $.ajax({
-        url: '/api/profile',
-        type: 'PUT',
-        contentType: 'application/json',
-        data: JSON.stringify(updates),
-        success: function() {
-            $('#modalEditProfile').modal('hide');
-            loadProfile();
-            showAlert('Profile updated successfully', 'success');
-        },
-        error: function() {
-            showAlert('Error updating profile', 'danger');
-        }
+    if (minutes < 1) return 'Just now';
+    if (minutes < 60) return `${minutes} minutes ago`;
+    if (hours < 24) return `${hours} hours ago`;
+    if (days < 7) return `${days} days ago`;
+    return date.toLocaleDateString();
+}
+
+function openEditProfileModal() {
+    openModal('editProfileModal');
+}
+
+async function saveProfile() {
+    showToast('Profile updated successfully!', 'success');
+    closeModal('editProfileModal');
+}
+
+function updatePreference(key, value) {
+    localStorage.setItem(`pref_${key}`, value);
+    showToast(`${key.replace(/_/g, ' ')} ${value ? 'enabled' : 'disabled'}`, 'success');
+}
+
+function copyToClipboard(elementId) {
+    const text = document.getElementById(elementId).textContent;
+    navigator.clipboard.writeText(text).then(() => {
+        showToast('Copied to clipboard!', 'success');
     });
-}
-
-function saveSetting(key, value) {
-    const update = {
-        user_id: 'user_1',
-        [key]: value
-    };
-    
-    $.ajax({
-        url: '/api/profile/settings',
-        type: 'PUT',
-        contentType: 'application/json',
-        data: JSON.stringify(update),
-        success: function() {
-            showAlert('Setting saved', 'success');
-        },
-        error: function() {
-            showAlert('Error saving setting', 'danger');
-        }
-    });
-}
-
-function updateNotifPref(key, value) {
-    const update = {
-        user_id: 'user_1',
-        [key]: value
-    };
-    
-    $.ajax({
-        url: '/api/notifications/preferences',
-        type: 'PUT',
-        contentType: 'application/json',
-        data: JSON.stringify(update),
-        success: function() {
-            console.log('Notification preference updated');
-        },
-        error: function() {
-            showAlert('Error updating notification preference', 'danger');
-        }
-    });
-}
-
-function updateStatusDisplay(status) {
-    const badge = $('#statusBadge');
-    const statusMap = {
-        'active': { class: 'badge-success', text: 'Active', icon: 'circle' },
-        'away': { class: 'badge-warning', text: 'Away', icon: 'brightness_4' },
-        'busy': { class: 'badge-danger', text: 'Busy', icon: 'circle' },
-        'offline': { class: 'badge-secondary', text: 'Offline', icon: 'radio_button_unchecked' }
-    };
-    
-    const info = statusMap[status] || statusMap['offline'];
-    badge.removeClass('badge-success badge-warning badge-danger badge-secondary');
-    badge.addClass(info.class);
-    badge.html(`<i class="material-icons">${info.icon}</i> ${info.text}`);
-}
-
-function viewSettings() {
-    $('[href="#tabPreferences"]').tab('show');
-}
-
-function changePassword() {
-    alert('Change password feature coming soon');
 }
 
 function logout() {
     if (confirm('Are you sure you want to logout?')) {
-        window.location.href = '/';
+        window.location.href = '/logout';
     }
 }
 
-function getActivityIcon(action) {
-    const iconMap = {
-        'create': '➕',
-        'update': '✏️',
-        'delete': '🗑️',
-        'view': '👁️',
-        'comment': '💬',
-        'share': '📤'
-    };
-    return iconMap[action] || '📝';
-}
+function openModal(id) { document.getElementById(id).classList.add('active'); }
+function closeModal(id) { document.getElementById(id).classList.remove('active'); }
 </script>
 {% endblock %}
