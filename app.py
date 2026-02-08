@@ -945,6 +945,34 @@ def api_delete_deal(deal_id):
     return api_delete_opportunity(deal_id)
 
 
+@app.route('/api/deals/<deal_id>/stage', methods=['PUT'])
+@login_required
+def api_update_deal_stage(deal_id):
+    """Update deal stage (for drag-drop in pipeline)"""
+    data = request.json
+    opportunity = Opportunity.query.get_or_404(deal_id)
+    
+    new_stage = data.get('stage')
+    if new_stage:
+        opportunity.stage = new_stage
+        # Update probability based on stage
+        stage_probabilities = {
+            'Prospecting': 10,
+            'Qualification': 20,
+            'Needs Analysis': 40,
+            'Proposal': 60,
+            'Negotiation': 80,
+            'Closed Won': 100,
+            'Closed Lost': 0
+        }
+        opportunity.probability = stage_probabilities.get(new_stage, opportunity.probability)
+        
+        db.session.commit()
+        log_activity('update', 'deal', opportunity.id, f"Stage changed to {new_stage}")
+    
+    return jsonify({'success': True, 'deal': opportunity.to_dict()})
+
+
 # ==================== API: TASKS ====================
 
 @app.route('/api/tasks', methods=['GET'])
@@ -1033,6 +1061,20 @@ def api_delete_task(task_id):
     db.session.commit()
     
     return jsonify({'success': True})
+
+
+@app.route('/api/tasks/<task_id>/complete', methods=['POST'])
+@login_required
+def api_complete_task(task_id):
+    """Mark a task as completed"""
+    task = Task.query.get_or_404(task_id)
+    task.status = 'completed'
+    task.completed_date = datetime.utcnow()
+    db.session.commit()
+    
+    log_activity('update', 'task', task.id, f"Completed: {task.subject}")
+    
+    return jsonify({'success': True, 'task': task.to_dict()})
 
 
 # ==================== API: ACTIVITIES ====================
