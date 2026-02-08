@@ -1,738 +1,1474 @@
-{% extends "base.html" %}{% extends "base.html" %}
+{% extends "base.html" %}{% extends "base.html" %}{% extends "base.html" %}
 
-{% block title %}My Profile - GeminiCRM Pro{% endblock %}
 
-{% block content %}
 
-{% block extra_head %}<div class="container-fluid p-4">
+{% block title %}My Profile - GeminiCRM Pro{% endblock %}{% block title %}My Profile - GeminiCRM Pro{% endblock %}
 
-<style>    <!-- Page Header -->
 
-.profile-header {    <div class="d-flex justify-content-between align-items-center mb-4">
 
-    background: linear-gradient(135deg, var(--primary) 0%, var(--tertiary) 100%);        <div>
+{% block extra_head %}{% block content %}
 
-    border-radius: var(--radius-xl);            <h1 class="mb-0">My Profile</h1>
+<style>
 
-    padding: 48px 32px;            <p class="text-muted mb-0">Manage your account and preferences</p>
+.profile-header {{% block extra_head %}<div class="container-fluid p-4">
 
-    color: white;        </div>
+    background: linear-gradient(135deg, var(--primary) 0%, var(--tertiary) 100%);
 
-    margin-bottom: 24px;        <div class="btn-group">
+    border-radius: var(--radius-xl);<style>    <!-- Page Header -->
 
-    display: flex;            <button class="btn btn-outline-secondary" onclick="editProfile()" title="Edit Profile">
+    padding: 48px 32px;
 
-    align-items: center;                <i class="material-icons">edit</i> Edit
+    color: white;.profile-header {    <div class="d-flex justify-content-between align-items-center mb-4">
 
-    gap: 32px;            </button>
+    margin-bottom: 24px;
 
-    position: relative;            <button class="btn btn-outline-secondary" onclick="viewSettings()" title="Settings">
+    display: flex;    background: linear-gradient(135deg, var(--primary) 0%, var(--tertiary) 100%);        <div>
 
-    overflow: hidden;                <i class="material-icons">settings</i> Settings
+    align-items: center;
 
-}            </button>
-
-        </div>
-
-.profile-header::before {    </div>
-
-    content: '';
-
-    position: absolute;    <div class="row">
-
-    top: -50%;        <!-- Left Column: Profile Card -->
-
-    right: -10%;        <div class="col-lg-4 mb-4">
-
-    width: 400px;            <div class="card shadow-sm">
-
-    height: 400px;                <div class="card-body text-center">
-
-    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);                    <!-- Avatar -->
-
-    border-radius: 50%;                    <div class="mb-3">
-
-}                        <div id="profileAvatar" class="avatar-large rounded-circle mx-auto mb-3" 
-
-                             style="width: 100px; height: 100px; font-size: 32px; line-height: 100px;">
-
-.profile-avatar-large {                            JD
-
-    width: 120px;                        </div>
-
-    height: 120px;                    </div>
-
-    border-radius: 50%;
-
-    background: rgba(255,255,255,0.2);                    <!-- Profile Info -->
-
-    backdrop-filter: blur(10px);                    <h3 id="profileName" class="mb-1">John Doe</h3>
-
-    display: flex;                    <p id="profileTitle" class="text-muted mb-3">Sales Manager</p>
-
-    align-items: center;                    
-
-    justify-content: center;                    <!-- Status Badge -->
-
-    font-size: 40px;                    <div class="mb-3">
-
-    font-weight: 600;                        <span id="statusBadge" class="badge badge-success badge-pill px-3 py-2">
-
-    color: white;                            <i class="material-icons">circle</i> Active
-
-    border: 4px solid rgba(255,255,255,0.3);                        </span>
-
-    position: relative;                    </div>
-
-    z-index: 1;
-
-}                    <hr>
-
-
-
-.profile-info {                    <!-- Contact Info -->
-
-    flex: 1;                    <div class="text-left mb-3">
-
-    position: relative;                        <p class="mb-2"><strong>Email</strong><br><span id="profileEmail">john@example.com</span></p>
-
-    z-index: 1;                        <p class="mb-2"><strong>Phone</strong><br><span id="profilePhone">+1-555-0100</span></p>
-
-}                        <p class="mb-2"><strong>Department</strong><br><span id="profileDept">Sales</span></p>
-
-                        <p class="mb-2"><strong>Team ID</strong><br><span id="profileTeam">team_1</span></p>
-
-.profile-name {                    </div>
-
-    font-size: 2rem;
-
-    font-weight: 600;                    <hr>
-
-    margin: 0 0 4px 0;
-
-}                    <!-- Action Buttons -->
-
-                    <button class="btn btn-sm btn-outline-primary btn-block mb-2" onclick="changePassword()">
-
-.profile-role {                        <i class="material-icons">lock</i> Change Password
-
-    font-size: 1.1rem;                    </button>
-
-    opacity: 0.9;                    <button class="btn btn-sm btn-outline-danger btn-block" onclick="logout()">
-
-    margin-bottom: 12px;                        <i class="material-icons">logout</i> Logout
-
-}                    </button>
-
-                </div>
-
-.profile-status {            </div>
-
-    display: inline-flex;
-
-    align-items: center;            <!-- Team Card -->
-
-    gap: 6px;            <div class="card shadow-sm mt-3">
-
-    background: rgba(255,255,255,0.2);                <div class="card-header bg-light">
-
-    backdrop-filter: blur(10px);                    <h5 class="mb-0">Team</h5>
-
-    padding: 6px 16px;                </div>
-
-    border-radius: 20px;                <div class="card-body">
-
-    font-size: 0.875rem;                    <div id="teamStats">
-
-}                        <p class="mb-2"><strong>Members:</strong> <span>5</span></p>
-
-                        <p class="mb-2"><strong>Total Deals:</strong> <span>42</span></p>
-
-.profile-status .status-dot {                        <p class="mb-2"><strong>Total Revenue:</strong> <span>$2.5M</span></p>
-
-    width: 8px;                    </div>
-
-    height: 8px;                </div>
-
-    border-radius: 50%;            </div>
-
-    background: #00e676;        </div>
-
-}
-
-        <!-- Right Column: Statistics & Settings -->
-
-.profile-actions {        <div class="col-lg-8">
-
-    display: flex;            <!-- Statistics Cards -->
-
-    gap: 12px;            <div class="row mb-4">
-
-    position: relative;                <div class="col-sm-6 mb-3">
-
-    z-index: 1;                    <div class="card shadow-sm">
-
-}                        <div class="card-body">
-
-                            <div class="d-flex justify-content-between align-items-start">
-
-.profile-actions .btn {                                <div>
-
-    background: rgba(255,255,255,0.2);                                    <p class="text-muted mb-1">Total Deals</p>
-
-    backdrop-filter: blur(10px);                                    <h2 id="statDeals" class="mb-0">28</h2>
-
-    border: 1px solid rgba(255,255,255,0.3);                                </div>
-
-    color: white;                                <i class="material-icons text-primary" style="font-size: 32px;">handshake</i>
-
-}                            </div>
-
-                        </div>
-
-.profile-actions .btn:hover {                    </div>
-
-    background: rgba(255,255,255,0.3);                </div>
-
-}                <div class="col-sm-6 mb-3">
-
-                    <div class="card shadow-sm">
-
-.profile-grid {                        <div class="card-body">
-
-    display: grid;                            <div class="d-flex justify-content-between align-items-start">
-
-    grid-template-columns: repeat(4, 1fr);                                <div>
-
-    gap: 24px;                                    <p class="text-muted mb-1">Closed Deals</p>
-
-}                                    <h2 id="statClosed" class="mb-0">18</h2>
-
-                                </div>
-
-@media (max-width: 1200px) {                                <i class="material-icons text-success" style="font-size: 32px;">check_circle</i>
-
-    .profile-grid {                            </div>
-
-        grid-template-columns: repeat(2, 1fr);                        </div>
-
-    }                    </div>
-
-}                </div>
-
-                <div class="col-sm-6 mb-3">
-
-@media (max-width: 768px) {                    <div class="card shadow-sm">
-
-    .profile-grid {                        <div class="card-body">
-
-        grid-template-columns: 1fr;                            <div class="d-flex justify-content-between align-items-start">
-
-    }                                <div>
-
-    .profile-header {                                    <p class="text-muted mb-1">Total Contacts</p>
-
-        flex-direction: column;                                    <h2 id="statContacts" class="mb-0">156</h2>
-
-        text-align: center;                                </div>
-
-        padding: 32px 24px;                                <i class="material-icons text-info" style="font-size: 32px;">people</i>
-
-    }                            </div>
-
-    .profile-actions {                        </div>
-
-        flex-wrap: wrap;                    </div>
-
-        justify-content: center;                </div>
-
-    }                <div class="col-sm-6 mb-3">
-
-}                    <div class="card shadow-sm">
-
-                        <div class="card-body">
-
-.stat-card {                            <div class="d-flex justify-content-between align-items-start">
-
-    background: var(--surface);                                <div>
-
-    border-radius: var(--radius-lg);                                    <p class="text-muted mb-1">Total Revenue</p>
-
-    padding: 24px;                                    <h2 id="statRevenue" class="mb-0">$1.2M</h2>
-
-    display: flex;                                </div>
-
-    align-items: center;                                <i class="material-icons text-warning" style="font-size: 32px;">trending_up</i>
-
-    gap: 16px;                            </div>
-
-    transition: all 0.2s;                        </div>
-
-}                    </div>
-
-                </div>
-
-.stat-card:hover {            </div>
-
-    transform: translateY(-2px);
-
-    box-shadow: var(--shadow-md);            <!-- Preferences Tabs -->
-
-}            <div class="card shadow-sm">
-
-                <ul class="nav nav-tabs card-header-tabs" role="tablist">
-
-.stat-icon {                    <li class="nav-item">
-
-    width: 56px;                        <a class="nav-link active" data-toggle="tab" href="#tabPreferences">
-
-    height: 56px;                            <i class="material-icons">settings</i> Preferences
-
-    border-radius: var(--radius-md);                        </a>
-
-    display: flex;                    </li>
-
-    align-items: center;                    <li class="nav-item">
-
-    justify-content: center;                        <a class="nav-link" data-toggle="tab" href="#tabNotifications">
-
-    font-size: 28px;                            <i class="material-icons">notifications</i> Notifications
-
-}                        </a>
-
-                    </li>
-
-.stat-icon.blue { background: #e3f2fd; color: #1976d2; }                    <li class="nav-item">
-
-.stat-icon.green { background: #e8f5e9; color: #388e3c; }                        <a class="nav-link" data-toggle="tab" href="#tabActivity">
-
-.stat-icon.orange { background: #fff3e0; color: #f57c00; }                            <i class="material-icons">history</i> Activity
-
-.stat-icon.purple { background: #f3e5f5; color: #7b1fa2; }                        </a>
-
-                    </li>
-
-.stat-info h3 {                </ul>
-
-    font-size: 1.75rem;
-
-    font-weight: 600;                <div class="tab-content p-4">
-
-    margin: 0;                    <!-- Preferences Tab -->
-
-    color: var(--on-surface);                    <div class="tab-pane fade show active" id="tabPreferences">
-
-}                        <div class="form-group">
-
-                            <label for="prefLanguage"><strong>Language</strong></label>
-
-.stat-info p {                            <select id="prefLanguage" class="form-control" onchange="saveSetting('language', this.value)">
-
-    margin: 0;                                <option value="en" selected>English</option>
-
-    color: var(--on-surface-variant);                                <option value="es">Spanish</option>
-
-    font-size: 0.875rem;                                <option value="fr">French</option>
-
-}                                <option value="de">German</option>
-
-                                <option value="zh">Chinese</option>
-
-.section-title {                            </select>
-
-    font-size: 1.25rem;                        </div>
-
-    font-weight: 600;
-
-    margin: 32px 0 16px 0;                        <div class="form-group">
-
-    display: flex;                            <label for="prefTimezone"><strong>Timezone</strong></label>
-
-    align-items: center;                            <select id="prefTimezone" class="form-control" onchange="saveSetting('timezone', this.value)">
-
-    gap: 8px;                                <option value="UTC">UTC</option>
-
-}                                <option value="America/New_York">Eastern Time</option>
-
-                                <option value="America/Chicago">Central Time</option>
-
-.section-title .material-icons-round {                                <option value="America/Denver">Mountain Time</option>
-
-    color: var(--primary);                                <option value="America/Los_Angeles">Pacific Time</option>
-
-}                            </select>
-
-                        </div>
-
-.info-card {
-
-    background: var(--surface);                        <div class="form-group">
-
-    border-radius: var(--radius-lg);                            <label for="prefTheme"><strong>Theme</strong></label>
-
-    overflow: hidden;                            <select id="prefTheme" class="form-control" onchange="saveSetting('theme', this.value)">
-
-}                                <option value="light" selected>Light</option>
-
-                                <option value="dark">Dark</option>
-
-.info-row {                                <option value="auto">Auto</option>
-
-    display: flex;                            </select>
-
-    padding: 16px 20px;                        </div>
-
-    border-bottom: 1px solid var(--outline-variant);
-
-    align-items: center;                        <div class="form-group">
-
-}                            <label for="prefCurrency"><strong>Currency</strong></label>
-
-                            <select id="prefCurrency" class="form-control" onchange="saveSetting('currency', this.value)">
-
-.info-row:last-child {                                <option value="USD" selected>USD ($)</option>
-
-    border-bottom: none;                                <option value="EUR">EUR (€)</option>
-
-}                                <option value="GBP">GBP (£)</option>
-
-                                <option value="JPY">JPY (¥)</option>
-
-.info-row-label {                            </select>
-
-    width: 150px;                        </div>
-
-    font-weight: 500;                    </div>
-
-    color: var(--on-surface-variant);
-
-    display: flex;                    <!-- Notifications Tab -->
-
-    align-items: center;                    <div class="tab-pane fade" id="tabNotifications">
-
-    gap: 8px;                        <div class="form-check mb-3">
-
-}                            <input class="form-check-input" type="checkbox" id="notifDealUpdate" checked onchange="updateNotifPref('email_on_deal_update', this.checked)">
-
-                            <label class="form-check-label" for="notifDealUpdate">
-
-.info-row-value {                                <strong>Email on Deal Update</strong>
-
-    flex: 1;                                <p class="text-muted small mb-0">Get notified when deals are updated</p>
-
-    color: var(--on-surface);                            </label>
-
-}                        </div>
-
-
-
-.info-row-action {                        <div class="form-check mb-3">
-
-    color: var(--primary);                            <input class="form-check-input" type="checkbox" id="notifTaskAssign" checked onchange="updateNotifPref('email_on_task_assign', this.checked)">
-
-    cursor: pointer;                            <label class="form-check-label" for="notifTaskAssign">
-
-}                                <strong>Email on Task Assignment</strong>
-
-                                <p class="text-muted small mb-0">Get notified when tasks are assigned to you</p>
-
-.activity-list {                            </label>
-
-    background: var(--surface);                        </div>
-
-    border-radius: var(--radius-lg);
-
-    overflow: hidden;                        <div class="form-check mb-3">
-
-}                            <input class="form-check-input" type="checkbox" id="notifMention" checked onchange="updateNotifPref('email_on_mention', this.checked)">
-
-                            <label class="form-check-label" for="notifMention">
-
-.activity-item {                                <strong>Email on Mention</strong>
-
-    display: flex;                                <p class="text-muted small mb-0">Get notified when someone mentions you</p>
-
-    gap: 16px;                            </label>
-
-    padding: 16px 20px;                        </div>
-
-    border-bottom: 1px solid var(--outline-variant);
-
-}                        <div class="form-check mb-3">
-
-                            <input class="form-check-input" type="checkbox" id="notifActivity" onchange="updateNotifPref('email_on_activity', this.checked)">
-
-.activity-item:last-child {                            <label class="form-check-label" for="notifActivity">
-
-    border-bottom: none;                                <strong>Email on Activity</strong>
-
-}                                <p class="text-muted small mb-0">Get notified on all CRM activities</p>
-
-                            </label>
-
-.activity-icon {                        </div>
-
-    width: 40px;
-
-    height: 40px;                        <hr>
-
-    border-radius: 50%;
-
-    background: var(--primary-container);                        <div class="form-check mb-3">
-
-    color: var(--on-primary-container);                            <input class="form-check-input" type="checkbox" id="notifPush" checked onchange="updateNotifPref('push_enabled', this.checked)">
-
-    display: flex;                            <label class="form-check-label" for="notifPush">
-
-    align-items: center;                                <strong>Push Notifications</strong>
-
-    justify-content: center;                                <p class="text-muted small mb-0">Enable browser push notifications</p>
-
-    flex-shrink: 0;                            </label>
-
-}                        </div>
-
-
-
-.activity-content {                        <div class="form-check mb-3">
-
-    flex: 1;                            <input class="form-check-input" type="checkbox" id="notifQuietHours" onchange="updateNotifPref('quiet_hours_enabled', this.checked)">
-
-}                            <label class="form-check-label" for="notifQuietHours">
-
-                                <strong>Quiet Hours</strong>
-
-.activity-title {                                <p class="text-muted small mb-0">Enable quiet hours (no notifications during specific times)</p>
-
-    font-weight: 500;                            </label>
-
-    color: var(--on-surface);                        </div>
-
-    margin-bottom: 4px;                    </div>
-
-}
-
-                    <!-- Activity Tab -->
-
-.activity-meta {                    <div class="tab-pane fade" id="tabActivity">
-
-    font-size: 0.875rem;                        <div id="activityList" class="activity-timeline">
-
-    color: var(--on-surface-variant);                            <!-- Activity items will load here -->
-
-}                        </div>
-
-                    </div>
-
-.preferences-grid {                </div>
-
-    display: grid;            </div>
-
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));        </div>
-
-    gap: 16px;    </div>
-
-}</div>
-
-
-
-.preference-card {<!-- Edit Profile Modal -->
-
-    background: var(--surface);<div class="modal fade" id="modalEditProfile" tabindex="-1">
-
-    border-radius: var(--radius-lg);    <div class="modal-dialog">
-
-    padding: 20px;        <div class="modal-content">
-
-    display: flex;            <div class="modal-header">
-
-    justify-content: space-between;                <h5 class="modal-title">Edit Profile</h5>
-
-    align-items: center;                <button type="button" class="close" data-dismiss="modal">
-
-}                    <span>&times;</span>
-
-                </button>
-
-.preference-info h4 {            </div>
-
-    margin: 0 0 4px 0;            <div class="modal-body">
-
-    font-weight: 500;                <form id="formEditProfile">
-
-}                    <div class="form-group">
-
-                        <label for="editFirstName">First Name</label>
-
-.preference-info p {                        <input type="text" class="form-control" id="editFirstName" placeholder="First Name">
-
-    margin: 0;                    </div>
-
-    font-size: 0.875rem;                    <div class="form-group">
-
-    color: var(--on-surface-variant);                        <label for="editLastName">Last Name</label>
-
-}                        <input type="text" class="form-control" id="editLastName" placeholder="Last Name">
-
-                    </div>
-
-.toggle-switch {                    <div class="form-group">
-
-    position: relative;                        <label for="editEmail">Email</label>
-
-    width: 52px;                        <input type="email" class="form-control" id="editEmail" placeholder="Email">
-
-    height: 32px;                    </div>
-
-}                    <div class="form-group">
-
-                        <label for="editPhone">Phone</label>
-
-.toggle-switch input {                        <input type="tel" class="form-control" id="editPhone" placeholder="Phone">
-
-    opacity: 0;                    </div>
-
-    width: 0;                    <div class="form-group">
-
-    height: 0;                        <label for="editBio">Bio</label>
-
-}                        <textarea class="form-control" id="editBio" rows="3" placeholder="Tell us about yourself"></textarea>
-
-                    </div>
-
-.toggle-slider {                </form>
-
-    position: absolute;            </div>
-
-    cursor: pointer;            <div class="modal-footer">
-
-    top: 0;                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-
-    left: 0;                <button type="button" class="btn btn-primary" onclick="saveProfileChanges()">Save Changes</button>
-
-    right: 0;            </div>
-
-    bottom: 0;        </div>
-
-    background: var(--outline);    </div>
-
-    transition: 0.3s;</div>
-
-    border-radius: 16px;
-
-}<style>
-
-.avatar-large {
-
-.toggle-slider:before {    display: flex;
-
-    position: absolute;    align-items: center;
-
-    content: "";    justify-content: center;
-
-    height: 24px;    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-
-    width: 24px;    color: white;
-
-    left: 4px;    font-weight: bold;
-
-    bottom: 4px;}
-
-    background: white;
-
-    transition: 0.3s;.activity-timeline {
-
-    border-radius: 50%;    position: relative;
-
-    box-shadow: var(--shadow-sm);    padding: 20px 0;
-
-}}
-
-
-
-.toggle-switch input:checked + .toggle-slider {.activity-item {
-
-    background: var(--primary);    display: flex;
-
-}    margin-bottom: 20px;
+    gap: 32px;    border-radius: var(--radius-xl);            <h1 class="mb-0">My Profile</h1>
 
     position: relative;
 
-.toggle-switch input:checked + .toggle-slider:before {}
-
-    transform: translateX(20px);
-
-}.activity-item::before {
-
-    content: '';
-
-.modal .form-group {    position: absolute;
-
-    margin-bottom: 20px;    left: 19px;
-
-}    top: 40px;
-
-    width: 2px;
-
-.modal .form-label {    height: 30px;
-
-    display: block;    background: #e9ecef;
-
-    font-weight: 500;}
-
-    margin-bottom: 8px;
-
-    color: var(--on-surface);.activity-item:last-child::before {
-
-}    display: none;
+    overflow: hidden;    padding: 48px 32px;            <p class="text-muted mb-0">Manage your account and preferences</p>
 
 }
 
-.modal .form-input {
+    color: white;        </div>
 
-    width: 100%;.activity-icon {
+.profile-header::before {
 
-    padding: 12px 16px;    width: 40px;
+    content: '';    margin-bottom: 24px;        <div class="btn-group">
 
-    border: 1px solid var(--outline);    height: 40px;
+    position: absolute;
 
-    border-radius: var(--radius-md);    border-radius: 50%;
+    top: -50%;    display: flex;            <button class="btn btn-outline-secondary" onclick="editProfile()" title="Edit Profile">
 
-    font-size: 1rem;    background: #f1f3f5;
+    right: -10%;
 
-    background: var(--surface);    display: flex;
+    width: 400px;    align-items: center;                <i class="material-icons">edit</i> Edit
 
-    color: var(--on-surface);    align-items: center;
+    height: 400px;
 
-    transition: all 0.2s;    justify-content: center;
+    background: rgba(255,255,255,0.1);    gap: 32px;            </button>
 
-}    margin-right: 15px;
+    border-radius: 50%;
+
+}    position: relative;            <button class="btn btn-outline-secondary" onclick="viewSettings()" title="Settings">
+
+
+
+.profile-avatar-large {    overflow: hidden;                <i class="material-icons">settings</i> Settings
+
+    width: 120px;
+
+    height: 120px;}            </button>
+
+    border-radius: 50%;
+
+    background: rgba(255,255,255,0.2);        </div>
+
+    display: flex;
+
+    align-items: center;.profile-header::before {    </div>
+
+    justify-content: center;
+
+    font-size: 48px;    content: '';
+
+    font-weight: 500;
+
+    border: 4px solid rgba(255,255,255,0.3);    position: absolute;    <div class="row">
 
     flex-shrink: 0;
 
-.modal .form-input:focus {    position: relative;
+    position: relative;    top: -50%;        <!-- Left Column: Profile Card -->
 
-    outline: none;    z-index: 1;
+    z-index: 1;
 
-    border-color: var(--primary);}
+}    right: -10%;        <div class="col-lg-4 mb-4">
 
-    box-shadow: 0 0 0 3px var(--primary-container);
 
-}.activity-content {
+
+.profile-info {    width: 400px;            <div class="card shadow-sm">
 
     flex: 1;
 
-.modal .form-row {}
+    position: relative;    height: 400px;                <div class="card-body text-center">
+
+    z-index: 1;
+
+}    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);                    <!-- Avatar -->
+
+
+
+.profile-name {    border-radius: 50%;                    <div class="mb-3">
+
+    font-size: 2rem;
+
+    font-weight: 600;}                        <div id="profileAvatar" class="avatar-large rounded-circle mx-auto mb-3" 
+
+    margin: 0 0 4px 0;
+
+}                             style="width: 100px; height: 100px; font-size: 32px; line-height: 100px;">
+
+
+
+.profile-role {.profile-avatar-large {                            JD
+
+    font-size: 1rem;
+
+    opacity: 0.9;    width: 120px;                        </div>
+
+    margin: 0 0 12px 0;
+
+}    height: 120px;                    </div>
+
+
+
+.profile-status {    border-radius: 50%;
+
+    display: inline-flex;
+
+    align-items: center;    background: rgba(255,255,255,0.2);                    <!-- Profile Info -->
+
+    gap: 8px;
+
+    background: rgba(255,255,255,0.2);    backdrop-filter: blur(10px);                    <h3 id="profileName" class="mb-1">John Doe</h3>
+
+    padding: 6px 16px;
+
+    border-radius: 999px;    display: flex;                    <p id="profileTitle" class="text-muted mb-3">Sales Manager</p>
+
+    font-size: 0.875rem;
+
+}    align-items: center;                    
+
+
+
+.status-dot {    justify-content: center;                    <!-- Status Badge -->
+
+    width: 8px;
+
+    height: 8px;    font-size: 40px;                    <div class="mb-3">
+
+    border-radius: 50%;
+
+    background: #4ade80;    font-weight: 600;                        <span id="statusBadge" class="badge badge-success badge-pill px-3 py-2">
+
+}
+
+    color: white;                            <i class="material-icons">circle</i> Active
+
+.profile-actions {
+
+    display: flex;    border: 4px solid rgba(255,255,255,0.3);                        </span>
+
+    gap: 12px;
+
+    position: relative;    position: relative;                    </div>
+
+    z-index: 1;
+
+}    z-index: 1;
+
+
+
+.profile-actions .btn {}                    <hr>
+
+    background: rgba(255,255,255,0.2);
+
+    color: white;
+
+    border: 1px solid rgba(255,255,255,0.3);
+
+}.profile-info {                    <!-- Contact Info -->
+
+
+
+.profile-actions .btn:hover {    flex: 1;                    <div class="text-left mb-3">
+
+    background: rgba(255,255,255,0.3);
+
+}    position: relative;                        <p class="mb-2"><strong>Email</strong><br><span id="profileEmail">john@example.com</span></p>
+
+
+
+.profile-grid {    z-index: 1;                        <p class="mb-2"><strong>Phone</strong><br><span id="profilePhone">+1-555-0100</span></p>
 
     display: grid;
 
-    grid-template-columns: 1fr 1fr;.activity-content strong {
+    grid-template-columns: 1fr 1fr;}                        <p class="mb-2"><strong>Department</strong><br><span id="profileDept">Sales</span></p>
 
-    gap: 16px;    display: block;
+    gap: 24px;
 
-}    font-weight: 600;
+}                        <p class="mb-2"><strong>Team ID</strong><br><span id="profileTeam">team_1</span></p>
 
-</style>    margin-bottom: 2px;
+
+
+@media (max-width: 768px) {.profile-name {                    </div>
+
+    .profile-grid {
+
+        grid-template-columns: 1fr;    font-size: 2rem;
+
+    }
+
+    .profile-header {    font-weight: 600;                    <hr>
+
+        flex-direction: column;
+
+        text-align: center;    margin: 0 0 4px 0;
+
+    }
+
+}}                    <!-- Action Buttons -->
+
+
+
+.profile-section {                    <button class="btn btn-sm btn-outline-primary btn-block mb-2" onclick="changePassword()">
+
+    background: var(--surface);
+
+    border-radius: var(--radius-lg);.profile-role {                        <i class="material-icons">lock</i> Change Password
+
+    border: 1px solid var(--outline-variant);
+
+    padding: 24px;    font-size: 1.1rem;                    </button>
+
+}
+
+    opacity: 0.9;                    <button class="btn btn-sm btn-outline-danger btn-block" onclick="logout()">
+
+.profile-section h3 {
+
+    font-size: 1.125rem;    margin-bottom: 12px;                        <i class="material-icons">logout</i> Logout
+
+    font-weight: 600;
+
+    margin: 0 0 20px 0;}                    </button>
+
+    color: var(--on-surface);
+
+    display: flex;                </div>
+
+    align-items: center;
+
+    gap: 8px;.profile-status {            </div>
+
+}
+
+    display: inline-flex;
+
+.profile-section h3 .material-icons-round {
+
+    color: var(--primary);    align-items: center;            <!-- Team Card -->
+
+}
+
+    gap: 6px;            <div class="card shadow-sm mt-3">
+
+.info-grid {
+
+    display: grid;    background: rgba(255,255,255,0.2);                <div class="card-header bg-light">
+
+    gap: 16px;
+
+}    backdrop-filter: blur(10px);                    <h5 class="mb-0">Team</h5>
+
+
+
+.info-item {    padding: 6px 16px;                </div>
+
+    display: flex;
+
+    flex-direction: column;    border-radius: 20px;                <div class="card-body">
+
+    gap: 4px;
+
+}    font-size: 0.875rem;                    <div id="teamStats">
+
+
+
+.info-label {}                        <p class="mb-2"><strong>Members:</strong> <span>5</span></p>
+
+    font-size: 0.75rem;
+
+    text-transform: uppercase;                        <p class="mb-2"><strong>Total Deals:</strong> <span>42</span></p>
+
+    color: var(--on-surface-variant);
+
+    font-weight: 500;.profile-status .status-dot {                        <p class="mb-2"><strong>Total Revenue:</strong> <span>$2.5M</span></p>
+
+}
+
+    width: 8px;                    </div>
+
+.info-value {
+
+    font-size: 1rem;    height: 8px;                </div>
+
+    color: var(--on-surface);
+
+}    border-radius: 50%;            </div>
+
+
+
+.stats-grid {    background: #00e676;        </div>
+
+    display: grid;
+
+    grid-template-columns: repeat(2, 1fr);}
+
+    gap: 16px;
+
+}        <!-- Right Column: Statistics & Settings -->
+
+
+
+.stat-card {.profile-actions {        <div class="col-lg-8">
+
+    background: var(--surface-variant);
+
+    border-radius: var(--radius-md);    display: flex;            <!-- Statistics Cards -->
+
+    padding: 16px;
+
+    text-align: center;    gap: 12px;            <div class="row mb-4">
+
+}
+
+    position: relative;                <div class="col-sm-6 mb-3">
+
+.stat-value {
+
+    font-size: 1.75rem;    z-index: 1;                    <div class="card shadow-sm">
+
+    font-weight: 600;
+
+    color: var(--primary);}                        <div class="card-body">
+
+}
+
+                            <div class="d-flex justify-content-between align-items-start">
+
+.stat-label {
+
+    font-size: 0.75rem;.profile-actions .btn {                                <div>
+
+    color: var(--on-surface-variant);
+
+    margin-top: 4px;    background: rgba(255,255,255,0.2);                                    <p class="text-muted mb-1">Total Deals</p>
+
+}
+
+    backdrop-filter: blur(10px);                                    <h2 id="statDeals" class="mb-0">28</h2>
+
+.activity-list {
+
+    display: flex;    border: 1px solid rgba(255,255,255,0.3);                                </div>
+
+    flex-direction: column;
+
+    gap: 12px;    color: white;                                <i class="material-icons text-primary" style="font-size: 32px;">handshake</i>
+
+}
+
+}                            </div>
+
+.activity-item {
+
+    display: flex;                        </div>
+
+    gap: 12px;
+
+    padding: 12px;.profile-actions .btn:hover {                    </div>
+
+    background: var(--surface-variant);
+
+    border-radius: var(--radius-md);    background: rgba(255,255,255,0.3);                </div>
+
+}
+
+}                <div class="col-sm-6 mb-3">
+
+.activity-icon {
+
+    width: 40px;                    <div class="card shadow-sm">
+
+    height: 40px;
+
+    border-radius: 50%;.profile-grid {                        <div class="card-body">
+
+    background: var(--primary-container);
+
+    display: flex;    display: grid;                            <div class="d-flex justify-content-between align-items-start">
+
+    align-items: center;
+
+    justify-content: center;    grid-template-columns: repeat(4, 1fr);                                <div>
+
+    flex-shrink: 0;
+
+}    gap: 24px;                                    <p class="text-muted mb-1">Closed Deals</p>
+
+
+
+.activity-icon .material-icons-round {}                                    <h2 id="statClosed" class="mb-0">18</h2>
+
+    font-size: 20px;
+
+    color: var(--primary);                                </div>
+
+}
+
+@media (max-width: 1200px) {                                <i class="material-icons text-success" style="font-size: 32px;">check_circle</i>
+
+.activity-content {
+
+    flex: 1;    .profile-grid {                            </div>
+
+}
+
+        grid-template-columns: repeat(2, 1fr);                        </div>
+
+.activity-text {
+
+    font-size: 0.875rem;    }                    </div>
+
+    color: var(--on-surface);
+
+    margin-bottom: 4px;}                </div>
+
+}
+
+                <div class="col-sm-6 mb-3">
+
+.activity-time {
+
+    font-size: 0.75rem;@media (max-width: 768px) {                    <div class="card shadow-sm">
+
+    color: var(--on-surface-variant);
+
+}    .profile-grid {                        <div class="card-body">
+
+
+
+.quick-actions {        grid-template-columns: 1fr;                            <div class="d-flex justify-content-between align-items-start">
+
+    display: grid;
+
+    grid-template-columns: repeat(2, 1fr);    }                                <div>
+
+    gap: 12px;
+
+}    .profile-header {                                    <p class="text-muted mb-1">Total Contacts</p>
+
+
+
+.quick-action-btn {        flex-direction: column;                                    <h2 id="statContacts" class="mb-0">156</h2>
+
+    display: flex;
+
+    flex-direction: column;        text-align: center;                                </div>
+
+    align-items: center;
+
+    gap: 8px;        padding: 32px 24px;                                <i class="material-icons text-info" style="font-size: 32px;">people</i>
+
+    padding: 20px 16px;
+
+    background: var(--surface-variant);    }                            </div>
+
+    border: none;
+
+    border-radius: var(--radius-md);    .profile-actions {                        </div>
+
+    cursor: pointer;
+
+    transition: all 0.2s;        flex-wrap: wrap;                    </div>
+
+}
+
+        justify-content: center;                </div>
+
+.quick-action-btn:hover {
+
+    background: var(--primary-container);    }                <div class="col-sm-6 mb-3">
+
+}
+
+}                    <div class="card shadow-sm">
+
+.quick-action-btn .material-icons-round {
+
+    font-size: 28px;                        <div class="card-body">
+
+    color: var(--primary);
+
+}.stat-card {                            <div class="d-flex justify-content-between align-items-start">
+
+
+
+.quick-action-btn span:last-child {    background: var(--surface);                                <div>
+
+    font-size: 0.8125rem;
+
+    color: var(--on-surface);    border-radius: var(--radius-lg);                                    <p class="text-muted mb-1">Total Revenue</p>
+
+}
+
+    padding: 24px;                                    <h2 id="statRevenue" class="mb-0">$1.2M</h2>
+
+.modal-overlay {
+
+    display: none;    display: flex;                                </div>
+
+    position: fixed;
+
+    top: 0;    align-items: center;                                <i class="material-icons text-warning" style="font-size: 32px;">trending_up</i>
+
+    left: 0;
+
+    right: 0;    gap: 16px;                            </div>
+
+    bottom: 0;
+
+    background: rgba(0,0,0,0.5);    transition: all 0.2s;                        </div>
+
+    z-index: 1000;
+
+    align-items: center;}                    </div>
+
+    justify-content: center;
+
+}                </div>
+
+
+
+.modal-overlay.active {.stat-card:hover {            </div>
+
+    display: flex;
+
+}    transform: translateY(-2px);
+
+
+
+.modal-content {    box-shadow: var(--shadow-md);            <!-- Preferences Tabs -->
+
+    background: var(--surface);
+
+    border-radius: var(--radius-xl);}            <div class="card shadow-sm">
+
+    width: 90%;
+
+    max-width: 500px;                <ul class="nav nav-tabs card-header-tabs" role="tablist">
+
+    max-height: 90vh;
+
+    overflow-y: auto;.stat-icon {                    <li class="nav-item">
+
+}
+
+    width: 56px;                        <a class="nav-link active" data-toggle="tab" href="#tabPreferences">
+
+.modal-header {
+
+    padding: 24px 24px 16px;    height: 56px;                            <i class="material-icons">settings</i> Preferences
+
+    border-bottom: 1px solid var(--outline-variant);
+
+    display: flex;    border-radius: var(--radius-md);                        </a>
+
+    align-items: center;
+
+    justify-content: space-between;    display: flex;                    </li>
+
+}
+
+    align-items: center;                    <li class="nav-item">
+
+.modal-header h2 {
+
+    font-size: 1.25rem;    justify-content: center;                        <a class="nav-link" data-toggle="tab" href="#tabNotifications">
+
+    margin: 0;
+
+}    font-size: 28px;                            <i class="material-icons">notifications</i> Notifications
+
+
+
+.modal-body {}                        </a>
+
+    padding: 24px;
+
+}                    </li>
+
+
+
+.modal-footer {.stat-icon.blue { background: #e3f2fd; color: #1976d2; }                    <li class="nav-item">
+
+    padding: 16px 24px 24px;
+
+    display: flex;.stat-icon.green { background: #e8f5e9; color: #388e3c; }                        <a class="nav-link" data-toggle="tab" href="#tabActivity">
+
+    justify-content: flex-end;
+
+    gap: 12px;.stat-icon.orange { background: #fff3e0; color: #f57c00; }                            <i class="material-icons">history</i> Activity
+
+}
+
+.stat-icon.purple { background: #f3e5f5; color: #7b1fa2; }                        </a>
+
+.form-group {
+
+    margin-bottom: 20px;                    </li>
+
+}
+
+.stat-info h3 {                </ul>
+
+.form-group label {
+
+    display: block;    font-size: 1.75rem;
+
+    font-size: 0.875rem;
+
+    font-weight: 500;    font-weight: 600;                <div class="tab-content p-4">
+
+    margin-bottom: 6px;
+
+    color: var(--on-surface);    margin: 0;                    <!-- Preferences Tab -->
+
+}
+
+    color: var(--on-surface);                    <div class="tab-pane fade show active" id="tabPreferences">
+
+.form-group input,
+
+.form-group textarea,}                        <div class="form-group">
+
+.form-group select {
+
+    width: 100%;                            <label for="prefLanguage"><strong>Language</strong></label>
+
+    padding: 12px 16px;
+
+    border: 1px solid var(--outline-variant);.stat-info p {                            <select id="prefLanguage" class="form-control" onchange="saveSetting('language', this.value)">
+
+    border-radius: var(--radius-md);
+
+    font-size: 1rem;    margin: 0;                                <option value="en" selected>English</option>
+
+    background: var(--surface);
+
+    color: var(--on-surface);    color: var(--on-surface-variant);                                <option value="es">Spanish</option>
+
+}
+
+    font-size: 0.875rem;                                <option value="fr">French</option>
+
+.form-group input:focus,
+
+.form-group textarea:focus,}                                <option value="de">German</option>
+
+.form-group select:focus {
+
+    outline: none;                                <option value="zh">Chinese</option>
+
+    border-color: var(--primary);
+
+    box-shadow: 0 0 0 3px var(--primary-container);.section-title {                            </select>
+
+}
+
+    font-size: 1.25rem;                        </div>
+
+.form-row {
+
+    display: grid;    font-weight: 600;
+
+    grid-template-columns: 1fr 1fr;
+
+    gap: 16px;    margin: 32px 0 16px 0;                        <div class="form-group">
+
+}
+
+</style>    display: flex;                            <label for="prefTimezone"><strong>Timezone</strong></label>
+
+{% endblock %}
+
+    align-items: center;                            <select id="prefTimezone" class="form-control" onchange="saveSetting('timezone', this.value)">
+
+{% block content %}
+
+<div class="profile-header">    gap: 8px;                                <option value="UTC">UTC</option>
+
+    <div class="profile-avatar-large" id="profileAvatar">
+
+        <span id="avatarInitials">--</span>}                                <option value="America/New_York">Eastern Time</option>
+
+    </div>
+
+    <div class="profile-info">                                <option value="America/Chicago">Central Time</option>
+
+        <h1 class="profile-name" id="profileName">Loading...</h1>
+
+        <p class="profile-role" id="profileRole">User</p>.section-title .material-icons-round {                                <option value="America/Denver">Mountain Time</option>
+
+        <div class="profile-status">
+
+            <span class="status-dot"></span>    color: var(--primary);                                <option value="America/Los_Angeles">Pacific Time</option>
+
+            <span id="profileStatus">Active</span>
+
+        </div>}                            </select>
+
+    </div>
+
+    <div class="profile-actions">                        </div>
+
+        <button class="btn" onclick="openEditProfileModal()">
+
+            <span class="material-icons-round">edit</span>.info-card {
+
+            Edit Profile
+
+        </button>    background: var(--surface);                        <div class="form-group">
+
+        <button class="btn" onclick="window.location.href='/settings'">
+
+            <span class="material-icons-round">settings</span>    border-radius: var(--radius-lg);                            <label for="prefTheme"><strong>Theme</strong></label>
+
+            Settings
+
+        </button>    overflow: hidden;                            <select id="prefTheme" class="form-control" onchange="saveSetting('theme', this.value)">
+
+    </div>
+
+</div>}                                <option value="light" selected>Light</option>
+
+
+
+<div class="profile-grid">                                <option value="dark">Dark</option>
+
+    <div>
+
+        <div class="profile-section">.info-row {                                <option value="auto">Auto</option>
+
+            <h3>
+
+                <span class="material-icons-round">person</span>    display: flex;                            </select>
+
+                Personal Information
+
+            </h3>    padding: 16px 20px;                        </div>
+
+            <div class="info-grid">
+
+                <div class="info-item">    border-bottom: 1px solid var(--outline-variant);
+
+                    <span class="info-label">Full Name</span>
+
+                    <span class="info-value" id="infoName">--</span>    align-items: center;                        <div class="form-group">
+
+                </div>
+
+                <div class="info-item">}                            <label for="prefCurrency"><strong>Currency</strong></label>
+
+                    <span class="info-label">Email Address</span>
+
+                    <span class="info-value" id="infoEmail">--</span>                            <select id="prefCurrency" class="form-control" onchange="saveSetting('currency', this.value)">
+
+                </div>
+
+                <div class="info-item">.info-row:last-child {                                <option value="USD" selected>USD ($)</option>
+
+                    <span class="info-label">Phone Number</span>
+
+                    <span class="info-value" id="infoPhone">--</span>    border-bottom: none;                                <option value="EUR">EUR (€)</option>
+
+                </div>
+
+                <div class="info-item">}                                <option value="GBP">GBP (£)</option>
+
+                    <span class="info-label">Department</span>
+
+                    <span class="info-value" id="infoDepartment">--</span>                                <option value="JPY">JPY (¥)</option>
+
+                </div>
+
+                <div class="info-item">.info-row-label {                            </select>
+
+                    <span class="info-label">Title</span>
+
+                    <span class="info-value" id="infoTitle">--</span>    width: 150px;                        </div>
+
+                </div>
+
+                <div class="info-item">    font-weight: 500;                    </div>
+
+                    <span class="info-label">Member Since</span>
+
+                    <span class="info-value" id="infoJoined">--</span>    color: var(--on-surface-variant);
+
+                </div>
+
+            </div>    display: flex;                    <!-- Notifications Tab -->
+
+        </div>
+
+    align-items: center;                    <div class="tab-pane fade" id="tabNotifications">
+
+        <div class="profile-section" style="margin-top: 24px;">
+
+            <h3>    gap: 8px;                        <div class="form-check mb-3">
+
+                <span class="material-icons-round">insights</span>
+
+                Performance Stats}                            <input class="form-check-input" type="checkbox" id="notifDealUpdate" checked onchange="updateNotifPref('email_on_deal_update', this.checked)">
+
+            </h3>
+
+            <div class="stats-grid">                            <label class="form-check-label" for="notifDealUpdate">
+
+                <div class="stat-card">
+
+                    <div class="stat-value" id="statDeals">0</div>.info-row-value {                                <strong>Email on Deal Update</strong>
+
+                    <div class="stat-label">Deals Closed</div>
+
+                </div>    flex: 1;                                <p class="text-muted small mb-0">Get notified when deals are updated</p>
+
+                <div class="stat-card">
+
+                    <div class="stat-value" id="statRevenue">$0</div>    color: var(--on-surface);                            </label>
+
+                    <div class="stat-label">Revenue Generated</div>
+
+                </div>}                        </div>
+
+                <div class="stat-card">
+
+                    <div class="stat-value" id="statContacts">0</div>
+
+                    <div class="stat-label">Contacts Added</div>
+
+                </div>.info-row-action {                        <div class="form-check mb-3">
+
+                <div class="stat-card">
+
+                    <div class="stat-value" id="statTasks">0</div>    color: var(--primary);                            <input class="form-check-input" type="checkbox" id="notifTaskAssign" checked onchange="updateNotifPref('email_on_task_assign', this.checked)">
+
+                    <div class="stat-label">Tasks Completed</div>
+
+                </div>    cursor: pointer;                            <label class="form-check-label" for="notifTaskAssign">
+
+            </div>
+
+        </div>}                                <strong>Email on Task Assignment</strong>
+
+    </div>
+
+                                <p class="text-muted small mb-0">Get notified when tasks are assigned to you</p>
+
+    <div>
+
+        <div class="profile-section">.activity-list {                            </label>
+
+            <h3>
+
+                <span class="material-icons-round">flash_on</span>    background: var(--surface);                        </div>
+
+                Quick Actions
+
+            </h3>    border-radius: var(--radius-lg);
+
+            <div class="quick-actions">
+
+                <button class="quick-action-btn" onclick="window.location.href='/deals'">    overflow: hidden;                        <div class="form-check mb-3">
+
+                    <span class="material-icons-round">handshake</span>
+
+                    <span>New Deal</span>}                            <input class="form-check-input" type="checkbox" id="notifMention" checked onchange="updateNotifPref('email_on_mention', this.checked)">
+
+                </button>
+
+                <button class="quick-action-btn" onclick="window.location.href='/contacts'">                            <label class="form-check-label" for="notifMention">
+
+                    <span class="material-icons-round">person_add</span>
+
+                    <span>Add Contact</span>.activity-item {                                <strong>Email on Mention</strong>
+
+                </button>
+
+                <button class="quick-action-btn" onclick="window.location.href='/tasks'">    display: flex;                                <p class="text-muted small mb-0">Get notified when someone mentions you</p>
+
+                    <span class="material-icons-round">add_task</span>
+
+                    <span>Create Task</span>    gap: 16px;                            </label>
+
+                </button>
+
+                <button class="quick-action-btn" onclick="window.location.href='/reports'">    padding: 16px 20px;                        </div>
+
+                    <span class="material-icons-round">assessment</span>
+
+                    <span>View Reports</span>    border-bottom: 1px solid var(--outline-variant);
+
+                </button>
+
+            </div>}                        <div class="form-check mb-3">
+
+        </div>
+
+                            <input class="form-check-input" type="checkbox" id="notifActivity" onchange="updateNotifPref('email_on_activity', this.checked)">
+
+        <div class="profile-section" style="margin-top: 24px;">
+
+            <h3>.activity-item:last-child {                            <label class="form-check-label" for="notifActivity">
+
+                <span class="material-icons-round">history</span>
+
+                Recent Activity    border-bottom: none;                                <strong>Email on Activity</strong>
+
+            </h3>
+
+            <div class="activity-list" id="activityList">}                                <p class="text-muted small mb-0">Get notified on all CRM activities</p>
+
+                <div class="activity-item">
+
+                    <div class="activity-icon">                            </label>
+
+                        <span class="material-icons-round">sync</span>
+
+                    </div>.activity-icon {                        </div>
+
+                    <div class="activity-content">
+
+                        <div class="activity-text">Loading activities...</div>    width: 40px;
+
+                        <div class="activity-time">--</div>
+
+                    </div>    height: 40px;                        <hr>
+
+                </div>
+
+            </div>    border-radius: 50%;
+
+        </div>
+
+    </div>    background: var(--primary-container);                        <div class="form-check mb-3">
+
+</div>
+
+    color: var(--on-primary-container);                            <input class="form-check-input" type="checkbox" id="notifPush" checked onchange="updateNotifPref('push_enabled', this.checked)">
+
+<div class="modal-overlay" id="editProfileModal">
+
+    <div class="modal-content">    display: flex;                            <label class="form-check-label" for="notifPush">
+
+        <div class="modal-header">
+
+            <h2>Edit Profile</h2>    align-items: center;                                <strong>Push Notifications</strong>
+
+            <button class="btn btn-icon btn-ghost" onclick="closeModal('editProfileModal')">
+
+                <span class="material-icons-round">close</span>    justify-content: center;                                <p class="text-muted small mb-0">Enable browser push notifications</p>
+
+            </button>
+
+        </div>    flex-shrink: 0;                            </label>
+
+        <div class="modal-body">
+
+            <form id="profileForm">}                        </div>
+
+                <div class="form-row">
+
+                    <div class="form-group">
+
+                        <label for="editFirstName">First Name</label>
+
+                        <input type="text" id="editFirstName" required>.activity-content {                        <div class="form-check mb-3">
+
+                    </div>
+
+                    <div class="form-group">    flex: 1;                            <input class="form-check-input" type="checkbox" id="notifQuietHours" onchange="updateNotifPref('quiet_hours_enabled', this.checked)">
+
+                        <label for="editLastName">Last Name</label>
+
+                        <input type="text" id="editLastName" required>}                            <label class="form-check-label" for="notifQuietHours">
+
+                    </div>
+
+                </div>                                <strong>Quiet Hours</strong>
+
+                <div class="form-group">
+
+                    <label for="editEmail">Email Address</label>.activity-title {                                <p class="text-muted small mb-0">Enable quiet hours (no notifications during specific times)</p>
+
+                    <input type="email" id="editEmail" required>
+
+                </div>    font-weight: 500;                            </label>
+
+                <div class="form-group">
+
+                    <label for="editPhone">Phone Number</label>    color: var(--on-surface);                        </div>
+
+                    <input type="tel" id="editPhone">
+
+                </div>    margin-bottom: 4px;                    </div>
+
+                <div class="form-row">
+
+                    <div class="form-group">}
+
+                        <label for="editTitle">Job Title</label>
+
+                        <input type="text" id="editTitle">                    <!-- Activity Tab -->
+
+                    </div>
+
+                    <div class="form-group">.activity-meta {                    <div class="tab-pane fade" id="tabActivity">
+
+                        <label for="editDepartment">Department</label>
+
+                        <select id="editDepartment">    font-size: 0.875rem;                        <div id="activityList" class="activity-timeline">
+
+                            <option value="">-- Select --</option>
+
+                            <option value="Sales">Sales</option>    color: var(--on-surface-variant);                            <!-- Activity items will load here -->
+
+                            <option value="Marketing">Marketing</option>
+
+                            <option value="Support">Support</option>}                        </div>
+
+                            <option value="Engineering">Engineering</option>
+
+                            <option value="Management">Management</option>                    </div>
+
+                        </select>
+
+                    </div>.preferences-grid {                </div>
+
+                </div>
+
+                <div class="form-group">    display: grid;            </div>
+
+                    <label for="editBio">Bio</label>
+
+                    <textarea id="editBio" rows="3" placeholder="Tell us about yourself..."></textarea>    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));        </div>
+
+                </div>
+
+            </form>    gap: 16px;    </div>
+
+        </div>
+
+        <div class="modal-footer">}</div>
+
+            <button class="btn btn-secondary" onclick="closeModal('editProfileModal')">Cancel</button>
+
+            <button class="btn btn-primary" onclick="saveProfile()">Save Changes</button>
+
+        </div>
+
+    </div>.preference-card {<!-- Edit Profile Modal -->
+
+</div>
+
+{% endblock %}    background: var(--surface);<div class="modal fade" id="modalEditProfile" tabindex="-1">
+
+
+
+{% block scripts %}    border-radius: var(--radius-lg);    <div class="modal-dialog">
+
+<script>
+
+let currentUser = null;    padding: 20px;        <div class="modal-content">
+
+
+
+document.addEventListener('DOMContentLoaded', function() {    display: flex;            <div class="modal-header">
+
+    loadProfile();
+
+    loadStats();    justify-content: space-between;                <h5 class="modal-title">Edit Profile</h5>
+
+    loadActivity();
+
+});    align-items: center;                <button type="button" class="close" data-dismiss="modal">
+
+
+
+async function loadProfile() {}                    <span>&times;</span>
+
+    try {
+
+        const res = await fetch('/api/profile');                </button>
+
+        if (res.ok) {
+
+            currentUser = await res.json();.preference-info h4 {            </div>
+
+            renderProfile();
+
+        } else {    margin: 0 0 4px 0;            <div class="modal-body">
+
+            showToast('Failed to load profile', 'error');
+
+        }    font-weight: 500;                <form id="formEditProfile">
+
+    } catch (e) {
+
+        console.error('Error loading profile:', e);}                    <div class="form-group">
+
+    }
+
+}                        <label for="editFirstName">First Name</label>
+
+
+
+function renderProfile() {.preference-info p {                        <input type="text" class="form-control" id="editFirstName" placeholder="First Name">
+
+    if (!currentUser) return;
+
+        margin: 0;                    </div>
+
+    const firstName = currentUser.first_name || '';
+
+    const lastName = currentUser.last_name || '';    font-size: 0.875rem;                    <div class="form-group">
+
+    const fullName = (firstName + ' ' + lastName).trim() || currentUser.email || 'User';
+
+    const initials = getInitials(firstName, lastName);    color: var(--on-surface-variant);                        <label for="editLastName">Last Name</label>
+
+    
+
+    document.getElementById('avatarInitials').textContent = initials;}                        <input type="text" class="form-control" id="editLastName" placeholder="Last Name">
+
+    document.getElementById('profileAvatar').style.background = getAvatarColor(fullName);
+
+    document.getElementById('profileName').textContent = fullName;                    </div>
+
+    document.getElementById('profileRole').textContent = currentUser.title || currentUser.role || 'Team Member';
+
+    .toggle-switch {                    <div class="form-group">
+
+    document.getElementById('infoName').textContent = fullName;
+
+    document.getElementById('infoEmail').textContent = currentUser.email || '--';    position: relative;                        <label for="editEmail">Email</label>
+
+    document.getElementById('infoPhone').textContent = currentUser.phone || '--';
+
+    document.getElementById('infoDepartment').textContent = currentUser.department || '--';    width: 52px;                        <input type="email" class="form-control" id="editEmail" placeholder="Email">
+
+    document.getElementById('infoTitle').textContent = currentUser.title || '--';
+
+        height: 32px;                    </div>
+
+    if (currentUser.created_at) {
+
+        const joinDate = new Date(currentUser.created_at);}                    <div class="form-group">
+
+        document.getElementById('infoJoined').textContent = joinDate.toLocaleDateString('en-US', { 
+
+            year: 'numeric', month: 'long', day: 'numeric'                         <label for="editPhone">Phone</label>
+
+        });
+
+    }.toggle-switch input {                        <input type="tel" class="form-control" id="editPhone" placeholder="Phone">
+
+}
+
+    opacity: 0;                    </div>
+
+function getInitials(firstName, lastName) {
+
+    const first = firstName ? firstName.charAt(0).toUpperCase() : '';    width: 0;                    <div class="form-group">
+
+    const last = lastName ? lastName.charAt(0).toUpperCase() : '';
+
+    return first + last || 'U';    height: 0;                        <label for="editBio">Bio</label>
+
+}
+
+}                        <textarea class="form-control" id="editBio" rows="3" placeholder="Tell us about yourself"></textarea>
+
+function getAvatarColor(name) {
+
+    const colors = [                    </div>
+
+        'linear-gradient(135deg, #4285f4, #0d47a1)',
+
+        'linear-gradient(135deg, #34a853, #1b5e20)',.toggle-slider {                </form>
+
+        'linear-gradient(135deg, #ea4335, #b71c1c)',
+
+        'linear-gradient(135deg, #fbbc04, #f57c00)',    position: absolute;            </div>
+
+        'linear-gradient(135deg, #9c27b0, #4a148c)'
+
+    ];    cursor: pointer;            <div class="modal-footer">
+
+    let hash = 0;
+
+    for (let i = 0; i < name.length; i++) {    top: 0;                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+
+        hash = name.charCodeAt(i) + ((hash << 5) - hash);
+
+    }    left: 0;                <button type="button" class="btn btn-primary" onclick="saveProfileChanges()">Save Changes</button>
+
+    return colors[Math.abs(hash) % colors.length];
+
+}    right: 0;            </div>
+
+
+
+async function loadStats() {    bottom: 0;        </div>
+
+    try {
+
+        const dealsRes = await fetch('/api/deals');    background: var(--outline);    </div>
+
+        if (dealsRes.ok) {
+
+            const deals = await dealsRes.json();    transition: 0.3s;</div>
+
+            const closedDeals = deals.filter(d => d.stage === 'Closed Won');
+
+            const totalRevenue = closedDeals.reduce((sum, d) => sum + (d.amount || d.value || 0), 0);    border-radius: 16px;
+
+            document.getElementById('statDeals').textContent = closedDeals.length;
+
+            document.getElementById('statRevenue').textContent = formatCurrency(totalRevenue);}<style>
+
+        }
+
+        .avatar-large {
+
+        const contactsRes = await fetch('/api/contacts');
+
+        if (contactsRes.ok) {.toggle-slider:before {    display: flex;
+
+            const contacts = await contactsRes.json();
+
+            document.getElementById('statContacts').textContent = contacts.length;    position: absolute;    align-items: center;
+
+        }
+
+            content: "";    justify-content: center;
+
+        const tasksRes = await fetch('/api/tasks');
+
+        if (tasksRes.ok) {    height: 24px;    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+
+            const tasks = await tasksRes.json();
+
+            const completedTasks = tasks.filter(t => t.status === 'completed' || t.completed);    width: 24px;    color: white;
+
+            document.getElementById('statTasks').textContent = completedTasks.length;
+
+        }    left: 4px;    font-weight: bold;
+
+    } catch (e) {
+
+        console.error('Error loading stats:', e);    bottom: 4px;}
+
+    }
+
+}    background: white;
+
+
+
+function loadActivity() {    transition: 0.3s;.activity-timeline {
+
+    const activities = [
+
+        { icon: 'handshake', text: 'Closed deal with Acme Corp', time: '2 hours ago' },    border-radius: 50%;    position: relative;
+
+        { icon: 'person_add', text: 'Added new contact John Smith', time: '5 hours ago' },
+
+        { icon: 'task_alt', text: 'Completed follow-up call task', time: 'Yesterday' },    box-shadow: var(--shadow-sm);    padding: 20px 0;
+
+        { icon: 'email', text: 'Sent proposal to TechStart Inc', time: '2 days ago' }
+
+    ];}}
+
+    
+
+    const container = document.getElementById('activityList');
+
+    container.innerHTML = activities.map(a => 
+
+        '<div class="activity-item">' +.toggle-switch input:checked + .toggle-slider {.activity-item {
+
+            '<div class="activity-icon">' +
+
+                '<span class="material-icons-round">' + a.icon + '</span>' +    background: var(--primary);    display: flex;
+
+            '</div>' +
+
+            '<div class="activity-content">' +}    margin-bottom: 20px;
+
+                '<div class="activity-text">' + a.text + '</div>' +
+
+                '<div class="activity-time">' + a.time + '</div>' +    position: relative;
+
+            '</div>' +
+
+        '</div>'.toggle-switch input:checked + .toggle-slider:before {}
+
+    ).join('');
+
+}    transform: translateX(20px);
+
+
+
+function formatCurrency(amount) {}.activity-item::before {
+
+    return new Intl.NumberFormat('en-US', {
+
+        style: 'currency',    content: '';
+
+        currency: 'USD',
+
+        minimumFractionDigits: 0,.modal .form-group {    position: absolute;
+
+        maximumFractionDigits: 0
+
+    }).format(amount);    margin-bottom: 20px;    left: 19px;
+
+}
+
+}    top: 40px;
+
+function openEditProfileModal() {
+
+    if (currentUser) {    width: 2px;
+
+        document.getElementById('editFirstName').value = currentUser.first_name || '';
+
+        document.getElementById('editLastName').value = currentUser.last_name || '';.modal .form-label {    height: 30px;
+
+        document.getElementById('editEmail').value = currentUser.email || '';
+
+        document.getElementById('editPhone').value = currentUser.phone || '';    display: block;    background: #e9ecef;
+
+        document.getElementById('editTitle').value = currentUser.title || '';
+
+        document.getElementById('editDepartment').value = currentUser.department || '';    font-weight: 500;}
+
+        document.getElementById('editBio').value = currentUser.bio || '';
+
+    }    margin-bottom: 8px;
+
+    openModal('editProfileModal');
+
+}    color: var(--on-surface);.activity-item:last-child::before {
+
+
+
+async function saveProfile() {}    display: none;
+
+    const data = {
+
+        first_name: document.getElementById('editFirstName').value,}
+
+        last_name: document.getElementById('editLastName').value,
+
+        email: document.getElementById('editEmail').value,.modal .form-input {
+
+        phone: document.getElementById('editPhone').value,
+
+        title: document.getElementById('editTitle').value,    width: 100%;.activity-icon {
+
+        department: document.getElementById('editDepartment').value,
+
+        bio: document.getElementById('editBio').value    padding: 12px 16px;    width: 40px;
+
+    };
+
+        border: 1px solid var(--outline);    height: 40px;
+
+    try {
+
+        const res = await fetch('/api/profile', {    border-radius: var(--radius-md);    border-radius: 50%;
+
+            method: 'PUT',
+
+            headers: { 'Content-Type': 'application/json' },    font-size: 1rem;    background: #f1f3f5;
+
+            body: JSON.stringify(data)
+
+        });    background: var(--surface);    display: flex;
+
+        
+
+        if (res.ok) {    color: var(--on-surface);    align-items: center;
+
+            currentUser = await res.json();
+
+            renderProfile();    transition: all 0.2s;    justify-content: center;
+
+            closeModal('editProfileModal');
+
+            showToast('Profile updated successfully!', 'success');}    margin-right: 15px;
+
+        } else {
+
+            const err = await res.json();    flex-shrink: 0;
+
+            showToast(err.error || 'Failed to update profile', 'error');
+
+        }.modal .form-input:focus {    position: relative;
+
+    } catch (e) {
+
+        console.error('Error saving profile:', e);    outline: none;    z-index: 1;
+
+        showToast('Failed to update profile', 'error');
+
+    }    border-color: var(--primary);}
+
+}
+
+    box-shadow: 0 0 0 3px var(--primary-container);
+
+function openModal(id) {
+
+    document.getElementById(id).classList.add('active');}.activity-content {
+
+}
+
+    flex: 1;
+
+function closeModal(id) {
+
+    document.getElementById(id).classList.remove('active');.modal .form-row {}
+
+}
+
+    display: grid;
+
+function showToast(message, type) {
+
+    if (window.showToast) {    grid-template-columns: 1fr 1fr;.activity-content strong {
+
+        window.showToast(message, type);
+
+    } else {    gap: 16px;    display: block;
+
+        console.log(type + ': ' + message);
+
+    }}    font-weight: 600;
+
+}
+
+</script></style>    margin-bottom: 2px;
+
+{% endblock %}
 
 {% endblock %}}
 
