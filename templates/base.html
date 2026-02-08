@@ -17,6 +17,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     
     {% block head %}{% endblock %}
+    {% block extra_head %}{% endblock %}
 </head>
 <body>
     {% if current_user and current_user.is_authenticated %}

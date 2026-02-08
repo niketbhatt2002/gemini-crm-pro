@@ -1,29 +1,57 @@
 {% extends "base.html" %}
-{% block title %}Contacts{% endblock %}
+{% block title %}Contacts - Customer Relationships{% endblock %}
 
 {% block content %}
 <div class="page-header">
     <div class="page-header-content">
-        <h1 class="page-title">Contacts</h1>
-        <p class="page-subtitle">Manage your customer relationships</p>
+        <h1 class="page-title">
+            <span class="material-icons-round" style="color: var(--primary);">contacts</span>
+            Contacts
+        </h1>
+        <p class="page-subtitle">Manage your customer relationships and interactions</p>
     </div>
     <div class="page-actions">
-        <button class="btn btn-primary" onclick="openModal('addContactModal')">
-            <span class="material-icons-round">add</span>Add Contact
+        <div class="contact-stats" id="contactStats">
+            <div class="contact-stat">
+                <span class="contact-stat-value" id="totalContacts">0</span>
+                <span class="contact-stat-label">Total</span>
+            </div>
+        </div>
+        <button class="btn btn-secondary" onclick="toggleView()">
+            <span class="material-icons-round" id="viewIcon">view_module</span>
+        </button>
+        <button class="btn btn-primary" onclick="openAddContactModal()">
+            <span class="material-icons-round">person_add</span>
+            New Contact
         </button>
     </div>
 </div>
 
-<div class="card">
+<!-- Search & Filters -->
+<div class="filters-bar">
+    <div class="search-box">
+        <span class="material-icons-round">search</span>
+        <input type="text" id="contactSearch" placeholder="Search contacts by name, email, company..." onkeyup="filterContacts()">
+    </div>
+    <div class="filter-group">
+        <select id="accountFilter" class="filter-select" onchange="filterContacts()">
+            <option value="">All Accounts</option>
+        </select>
+    </div>
+</div>
+
+<!-- Table View -->
+<div class="card" id="tableView">
     <div class="card-body no-padding">
         <table class="data-table">
             <thead>
                 <tr>
                     <th>Contact</th>
-                    <th>Company</th>
+                    <th>Account</th>
                     <th>Email</th>
                     <th>Phone</th>
-                    <th>Location</th>
+                    <th>Title</th>
+                    <th>Last Activity</th>
                     <th></th>
                 </tr>
             </thead>
@@ -32,72 +60,985 @@
     </div>
 </div>
 
-<!-- Add Contact Modal -->
-<div id="addContactModal" class="modal">
-    <div class="modal-overlay" onclick="closeModal('addContactModal')"></div>
-    <div class="modal-container">
+<!-- Grid View (hidden by default) -->
+<div class="contacts-grid" id="gridView" style="display: none;"></div>
+
+<!-- Add/Edit Contact Modal -->
+<div id="contactModal" class="modal">
+    <div class="modal-overlay" onclick="closeModal('contactModal')"></div>
+    <div class="modal-container modal-lg">
         <div class="modal-header">
-            <h3>Add Contact</h3>
-            <button class="btn btn-icon btn-ghost" onclick="closeModal('addContactModal')">
+            <h3 id="contactModalTitle">New Contact</h3>
+            <button class="btn btn-icon btn-ghost" onclick="closeModal('contactModal')">
                 <span class="material-icons-round">close</span>
             </button>
         </div>
         <div class="modal-body">
-            <form id="addContactForm">
-                <div class="form-grid">
-                    <div class="form-group"><label class="form-label">First Name *</label><input type="text" name="first_name" class="form-input" required></div>
-                    <div class="form-group"><label class="form-label">Last Name *</label><input type="text" name="last_name" class="form-input" required></div>
-                    <div class="form-group"><label class="form-label">Email *</label><input type="email" name="email" class="form-input" required></div>
-                    <div class="form-group"><label class="form-label">Phone</label><input type="tel" name="phone" class="form-input"></div>
-                    <div class="form-group"><label class="form-label">Company</label><input type="text" name="company" class="form-input"></div>
-                    <div class="form-group"><label class="form-label">Title</label><input type="text" name="title" class="form-input"></div>
-                    <div class="form-group"><label class="form-label">City</label><input type="text" name="city" class="form-input"></div>
-                    <div class="form-group"><label class="form-label">Country</label><input type="text" name="country" class="form-input"></div>
+            <form id="contactForm">
+                <input type="hidden" id="contactId" name="id">
+                
+                <div class="form-section">
+                    <h4 class="form-section-title">Basic Information</h4>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">First Name *</label>
+                            <input type="text" id="contactFirstName" name="first_name" class="form-input" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Last Name *</label>
+                            <input type="text" id="contactLastName" name="last_name" class="form-input" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Email *</label>
+                            <input type="email" id="contactEmail" name="email" class="form-input" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Phone</label>
+                            <input type="tel" id="contactPhone" name="phone" class="form-input">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Mobile</label>
+                            <input type="tel" id="contactMobile" name="mobile" class="form-input">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Account</label>
+                            <select id="contactAccount" name="account_id" class="form-select">
+                                <option value="">-- Select Account --</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-section">
+                    <h4 class="form-section-title">Professional Details</h4>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Title</label>
+                            <input type="text" id="contactTitle" name="title" class="form-input" placeholder="e.g., VP of Sales">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Department</label>
+                            <input type="text" id="contactDepartment" name="department" class="form-input" placeholder="e.g., Sales">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Lead Source</label>
+                            <select id="contactSource" name="lead_source" class="form-select">
+                                <option value="">-- Select Source --</option>
+                                <option value="Website">Website</option>
+                                <option value="Referral">Referral</option>
+                                <option value="LinkedIn">LinkedIn</option>
+                                <option value="Trade Show">Trade Show</option>
+                                <option value="Cold Call">Cold Call</option>
+                                <option value="Partner">Partner</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Reports To</label>
+                            <select id="contactReportsTo" name="reports_to_id" class="form-select">
+                                <option value="">-- Select Manager --</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-section">
+                    <h4 class="form-section-title">Additional Info</h4>
+                    <div class="form-group">
+                        <label class="form-label">Description</label>
+                        <textarea id="contactDescription" name="description" class="form-input" rows="3" placeholder="Notes about this contact..."></textarea>
+                    </div>
                 </div>
             </form>
         </div>
         <div class="modal-footer">
-            <button class="btn btn-text" onclick="closeModal('addContactModal')">Cancel</button>
-            <button class="btn btn-primary" onclick="saveContact()">Save</button>
+            <button type="button" class="btn btn-text" onclick="closeModal('contactModal')">Cancel</button>
+            <button type="button" class="btn btn-primary" onclick="saveContact()">
+                <span class="material-icons-round">save</span>
+                Save Contact
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Contact Details Sidebar -->
+<div id="contactDetailsSidebar" class="details-sidebar">
+    <div class="details-sidebar-header">
+        <h3 id="detailsContactName">Contact Details</h3>
+        <button class="btn btn-icon btn-ghost" onclick="closeContactDetails()">
+            <span class="material-icons-round">close</span>
+        </button>
+    </div>
+    <div class="details-sidebar-body" id="contactDetailsContent">
+        <!-- Dynamic content -->
+    </div>
+</div>
+
+<!-- Log Activity Modal -->
+<div id="logActivityModal" class="modal">
+    <div class="modal-overlay" onclick="closeModal('logActivityModal')"></div>
+    <div class="modal-container">
+        <div class="modal-header">
+            <h3>Log Activity</h3>
+            <button class="btn btn-icon btn-ghost" onclick="closeModal('logActivityModal')">
+                <span class="material-icons-round">close</span>
+            </button>
+        </div>
+        <div class="modal-body">
+            <form id="activityForm">
+                <input type="hidden" id="activityContactId">
+                <div class="form-group">
+                    <label class="form-label">Activity Type</label>
+                    <select id="activityType" class="form-select" required>
+                        <option value="call">📞 Call</option>
+                        <option value="email">📧 Email</option>
+                        <option value="meeting">📅 Meeting</option>
+                        <option value="note">📝 Note</option>
+                        <option value="task">✅ Task</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Subject *</label>
+                    <input type="text" id="activitySubject" class="form-input" required placeholder="Brief description">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Details</label>
+                    <textarea id="activityDescription" class="form-input" rows="3" placeholder="Activity details..."></textarea>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-text" onclick="closeModal('logActivityModal')">Cancel</button>
+            <button type="button" class="btn btn-primary" onclick="saveActivity()">Log Activity</button>
         </div>
     </div>
 </div>
 
 <style>
-.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--spacing-md); }
-.contact-cell { display: flex; align-items: center; gap: var(--spacing-sm); }
-.contact-name { font-weight: 500; }
-.contact-title { font-size: 0.8125rem; color: var(--on-surface-variant); }
+/* Contact page styles */
+.contact-stats {
+    display: flex;
+    gap: 16px;
+    margin-right: 16px;
+    padding-right: 16px;
+    border-right: 1px solid var(--outline-variant);
+}
+.contact-stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+.contact-stat-value {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--primary);
+}
+.contact-stat-label {
+    font-size: 0.75rem;
+    color: var(--on-surface-variant);
+}
+
+.filters-bar {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 16px;
+    padding: 12px 16px;
+    background: var(--surface);
+    border-radius: 12px;
+    border: 1px solid var(--outline-variant);
+}
+
+.search-box {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--surface-container-low);
+    padding: 8px 16px;
+    border-radius: 999px;
+}
+
+.search-box input {
+    flex: 1;
+    border: none;
+    background: transparent;
+    font-size: 0.875rem;
+    outline: none;
+}
+
+.search-box .material-icons-round {
+    color: var(--on-surface-variant);
+    font-size: 20px;
+}
+
+.filter-select {
+    padding: 8px 16px;
+    border: 1px solid var(--outline);
+    border-radius: 8px;
+    background: var(--surface);
+    font-size: 0.875rem;
+}
+
+/* Table enhancements */
+.contact-cell {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.contact-name {
+    font-weight: 500;
+    cursor: pointer;
+    color: var(--on-surface);
+}
+
+.contact-name:hover {
+    color: var(--primary);
+}
+
+.contact-title {
+    font-size: 0.75rem;
+    color: var(--on-surface-variant);
+}
+
+.account-link {
+    color: var(--primary);
+    cursor: pointer;
+}
+
+.account-link:hover {
+    text-decoration: underline;
+}
+
+/* Grid view */
+.contacts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 16px;
+}
+
+.contact-card {
+    background: var(--surface);
+    border-radius: 12px;
+    border: 1px solid var(--outline-variant);
+    padding: 20px;
+    transition: all 0.2s;
+    cursor: pointer;
+}
+
+.contact-card:hover {
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
+}
+
+.contact-card-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.contact-card-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 500;
+    color: white;
+    font-size: 1.125rem;
+}
+
+.contact-card-info h4 {
+    font-weight: 500;
+    margin-bottom: 2px;
+}
+
+.contact-card-info p {
+    font-size: 0.8125rem;
+    color: var(--on-surface-variant);
+}
+
+.contact-card-details {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding-top: 12px;
+    border-top: 1px solid var(--outline-variant);
+}
+
+.contact-card-detail {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.8125rem;
+}
+
+.contact-card-detail .material-icons-round {
+    font-size: 16px;
+    color: var(--on-surface-variant);
+}
+
+.contact-card-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 16px;
+}
+
+/* Form sections */
+.form-section {
+    margin-bottom: 24px;
+}
+
+.form-section-title {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--on-surface-variant);
+    margin-bottom: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.form-row {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 12px;
+}
+
+.form-row .form-group {
+    flex: 1;
+    margin-bottom: 0;
+}
+
+/* Details sidebar */
+.details-sidebar {
+    position: fixed;
+    top: 0;
+    right: -500px;
+    width: 500px;
+    height: 100vh;
+    background: var(--surface);
+    box-shadow: var(--shadow-xl);
+    z-index: 200;
+    transition: right 0.3s ease;
+    display: flex;
+    flex-direction: column;
+}
+
+.details-sidebar.open {
+    right: 0;
+}
+
+.details-sidebar-header {
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--outline-variant);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.details-sidebar-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0;
+}
+
+/* Contact profile */
+.contact-profile {
+    padding: 24px;
+    background: linear-gradient(135deg, var(--primary-container), var(--surface));
+    text-align: center;
+}
+
+.contact-profile-avatar {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    font-weight: 500;
+    color: white;
+    margin: 0 auto 12px;
+    box-shadow: var(--shadow-md);
+}
+
+.contact-profile h2 {
+    font-weight: 500;
+    margin-bottom: 4px;
+}
+
+.contact-profile p {
+    color: var(--on-surface-variant);
+    font-size: 0.875rem;
+}
+
+.contact-profile-actions {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 16px;
+}
+
+/* Contact details sections */
+.contact-detail-section {
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--outline-variant);
+}
+
+.contact-detail-section h4 {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    color: var(--on-surface-variant);
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.detail-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 0;
+}
+
+.detail-row .material-icons-round {
+    font-size: 18px;
+    color: var(--on-surface-variant);
+}
+
+.detail-row a {
+    color: var(--primary);
+}
+
+/* Activity timeline */
+.activity-timeline {
+    padding: 0;
+}
+
+.activity-item {
+    display: flex;
+    gap: 12px;
+    padding: 12px 24px;
+    border-bottom: 1px solid var(--outline-variant);
+}
+
+.activity-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.activity-icon.call { background: var(--google-green); color: white; }
+.activity-icon.email { background: var(--google-blue); color: white; }
+.activity-icon.meeting { background: var(--google-purple); color: white; }
+.activity-icon.note { background: var(--google-yellow); color: white; }
+.activity-icon.task { background: var(--google-orange); color: white; }
+
+.activity-icon .material-icons-round {
+    font-size: 16px;
+}
+
+.activity-content {
+    flex: 1;
+}
+
+.activity-content h5 {
+    font-weight: 500;
+    font-size: 0.875rem;
+    margin-bottom: 2px;
+}
+
+.activity-content p {
+    font-size: 0.8125rem;
+    color: var(--on-surface-variant);
+}
+
+.activity-time {
+    font-size: 0.75rem;
+    color: var(--on-surface-variant);
+}
+
+.empty-state {
+    text-align: center;
+    padding: 40px;
+    color: var(--on-surface-variant);
+}
+
+.empty-state .material-icons-round {
+    font-size: 48px;
+    opacity: 0.3;
+    margin-bottom: 8px;
+}
+
+.modal-lg .modal-container {
+    max-width: 700px;
+}
 </style>
 {% endblock %}
 
 {% block scripts %}
 <script>
-document.addEventListener('DOMContentLoaded', loadContacts);
+let allContacts = [];
+let allAccounts = [];
+let currentView = 'table';
+let currentContact = null;
+
+document.addEventListener('DOMContentLoaded', initContactsPage);
+
+async function initContactsPage() {
+    await Promise.all([loadContacts(), loadAccounts()]);
+    populateAccountFilter();
+}
 
 async function loadContacts() {
     try {
         const res = await fetch('/api/contacts');
         const data = await res.json();
-        renderContacts(data.contacts);
-    } catch (e) { showToast('Failed to load contacts', 'error'); }
+        allContacts = data.contacts || [];
+        document.getElementById('totalContacts').textContent = allContacts.length;
+        renderContacts();
+    } catch (e) {
+        console.error('Failed to load contacts:', e);
+        showToast('Failed to load contacts', 'error');
+    }
 }
 
-function renderContacts(contacts) {
+async function loadAccounts() {
+    try {
+        const res = await fetch('/api/accounts');
+        const data = await res.json();
+        allAccounts = data.accounts || [];
+        populateAccountSelects();
+    } catch (e) {
+        console.error('Failed to load accounts:', e);
+    }
+}
+
+function populateAccountSelects() {
+    const selects = ['contactAccount'];
+    selects.forEach(id => {
+        const select = document.getElementById(id);
+        if (select) {
+            select.innerHTML = '<option value="">-- Select Account --</option>';
+            allAccounts.forEach(acc => {
+                select.innerHTML += `<option value="${acc.id}">${acc.name}</option>`;
+            });
+        }
+    });
+    
+    // Also populate Reports To with contacts
+    const reportsTo = document.getElementById('contactReportsTo');
+    if (reportsTo) {
+        reportsTo.innerHTML = '<option value="">-- Select Manager --</option>';
+        allContacts.forEach(c => {
+            const name = `${c.first_name || ''} ${c.last_name || ''}`.trim();
+            reportsTo.innerHTML += `<option value="${c.id}">${name}</option>`;
+        });
+    }
+}
+
+function populateAccountFilter() {
+    const filter = document.getElementById('accountFilter');
+    filter.innerHTML = '<option value="">All Accounts</option>';
+    allAccounts.forEach(acc => {
+        filter.innerHTML += `<option value="${acc.id}">${acc.name}</option>`;
+    });
+}
+
+function filterContacts() {
+    const search = document.getElementById('contactSearch').value.toLowerCase();
+    const accountId = document.getElementById('accountFilter').value;
+    
+    let filtered = allContacts;
+    
+    if (search) {
+        filtered = filtered.filter(c => {
+            const name = `${c.first_name || ''} ${c.last_name || ''}`.toLowerCase();
+            const email = (c.email || '').toLowerCase();
+            const company = (c.company || c.account_name || '').toLowerCase();
+            return name.includes(search) || email.includes(search) || company.includes(search);
+        });
+    }
+    
+    if (accountId) {
+        filtered = filtered.filter(c => c.account_id === accountId);
+    }
+    
+    renderContacts(filtered);
+}
+
+function renderContacts(contacts = allContacts) {
+    if (currentView === 'table') {
+        renderTableView(contacts);
+    } else {
+        renderGridView(contacts);
+    }
+}
+
+function renderTableView(contacts) {
     const tbody = document.getElementById('contactsTable');
+    
     if (!contacts.length) {
-        tbody.innerHTML = '<tr><td colspan="6" class="empty-cell">No contacts yet</td></tr>';
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="7" class="empty-cell">
+                    <div class="empty-state">
+                        <span class="material-icons-round">person_off</span>
+                        <p>No contacts found</p>
+                        <button class="btn btn-primary btn-sm" onclick="openAddContactModal()">Add Contact</button>
+                    </div>
+                </td>
+            </tr>
+        `;
         return;
     }
-    tbody.innerHTML = contacts.map(c => `
-        <tr>
-            <td>
-                <div class="contact-cell">
-                    <div class="avatar" style="background:${c.avatar_color}">${c.initials}</div>
-                    <div>
-                        <div class="contact-name">${c.full_name}</div>
-                        <div class="contact-title">${c.title || ''}</div>
+    
+    tbody.innerHTML = contacts.map(c => {
+        const name = `${c.first_name || ''} ${c.last_name || ''}`.trim() || 'Unknown';
+        const initials = getInitials(name);
+        const accountName = c.account_name || (c.account_id ? allAccounts.find(a => a.id === c.account_id)?.name : '');
+        
+        return `
+            <tr>
+                <td>
+                    <div class="contact-cell">
+                        <div class="avatar" style="background: ${getAvatarColor(name)}">${initials}</div>
+                        <div>
+                            <div class="contact-name" onclick="openContactDetails('${c.id}')">${name}</div>
+                            <div class="contact-title">${c.title || ''}</div>
+                        </div>
                     </div>
+                </td>
+                <td>${accountName ? `<span class="account-link" onclick="viewAccount('${c.account_id}')">${accountName}</span>` : '-'}</td>
+                <td><a href="mailto:${c.email}">${c.email || '-'}</a></td>
+                <td><a href="tel:${c.phone}">${c.phone || '-'}</a></td>
+                <td>${c.title || '-'}</td>
+                <td>${c.last_activity ? formatRelativeTime(c.last_activity) : 'Never'}</td>
+                <td>
+                    <div class="table-actions">
+                        <button class="btn btn-icon btn-ghost btn-xs" onclick="editContact('${c.id}')" title="Edit">
+                            <span class="material-icons-round">edit</span>
+                        </button>
+                        <button class="btn btn-icon btn-ghost btn-xs" onclick="openLogActivity('${c.id}')" title="Log Activity">
+                            <span class="material-icons-round">note_add</span>
+                        </button>
+                        <button class="btn btn-icon btn-ghost btn-xs" onclick="deleteContact('${c.id}')" title="Delete">
+                            <span class="material-icons-round">delete</span>
+                        </button>
+                    </div>
+                </td>
+            </tr>
+        `;
+    }).join('');
+}
+
+function renderGridView(contacts) {
+    const grid = document.getElementById('gridView');
+    
+    if (!contacts.length) {
+        grid.innerHTML = `
+            <div class="empty-state" style="grid-column: 1/-1;">
+                <span class="material-icons-round">person_off</span>
+                <p>No contacts found</p>
+                <button class="btn btn-primary btn-sm" onclick="openAddContactModal()">Add Contact</button>
+            </div>
+        `;
+        return;
+    }
+    
+    grid.innerHTML = contacts.map(c => {
+        const name = `${c.first_name || ''} ${c.last_name || ''}`.trim() || 'Unknown';
+        const initials = getInitials(name);
+        const accountName = c.account_name || (c.account_id ? allAccounts.find(a => a.id === c.account_id)?.name : '');
+        
+        return `
+            <div class="contact-card" onclick="openContactDetails('${c.id}')">
+                <div class="contact-card-header">
+                    <div class="contact-card-avatar" style="background: ${getAvatarColor(name)}">${initials}</div>
+                    <div class="contact-card-info">
+                        <h4>${name}</h4>
+                        <p>${c.title || ''} ${accountName ? '@ ' + accountName : ''}</p>
+                    </div>
+                </div>
+                <div class="contact-card-details">
+                    ${c.email ? `<div class="contact-card-detail"><span class="material-icons-round">email</span>${c.email}</div>` : ''}
+                    ${c.phone ? `<div class="contact-card-detail"><span class="material-icons-round">phone</span>${c.phone}</div>` : ''}
+                </div>
+                <div class="contact-card-actions">
+                    <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation(); openLogActivity('${c.id}')">
+                        <span class="material-icons-round">note_add</span> Log Activity
+                    </button>
+                    <button class="btn btn-text btn-sm" onclick="event.stopPropagation(); editContact('${c.id}')">
+                        <span class="material-icons-round">edit</span> Edit
+                    </button>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+function toggleView() {
+    currentView = currentView === 'table' ? 'grid' : 'table';
+    document.getElementById('tableView').style.display = currentView === 'table' ? 'block' : 'none';
+    document.getElementById('gridView').style.display = currentView === 'grid' ? 'grid' : 'none';
+    document.getElementById('viewIcon').textContent = currentView === 'table' ? 'view_module' : 'view_list';
+    renderContacts();
+}
+
+function openAddContactModal() {
+    document.getElementById('contactModalTitle').textContent = 'New Contact';
+    document.getElementById('contactForm').reset();
+    document.getElementById('contactId').value = '';
+    openModal('contactModal');
+}
+
+function editContact(contactId) {
+    const contact = allContacts.find(c => c.id === contactId);
+    if (!contact) return;
+    
+    document.getElementById('contactModalTitle').textContent = 'Edit Contact';
+    document.getElementById('contactId').value = contact.id;
+    document.getElementById('contactFirstName').value = contact.first_name || '';
+    document.getElementById('contactLastName').value = contact.last_name || '';
+    document.getElementById('contactEmail').value = contact.email || '';
+    document.getElementById('contactPhone').value = contact.phone || '';
+    document.getElementById('contactMobile').value = contact.mobile || '';
+    document.getElementById('contactAccount').value = contact.account_id || '';
+    document.getElementById('contactTitle').value = contact.title || '';
+    document.getElementById('contactDepartment').value = contact.department || '';
+    document.getElementById('contactSource').value = contact.lead_source || '';
+    document.getElementById('contactDescription').value = contact.description || '';
+    
+    openModal('contactModal');
+}
+
+async function saveContact() {
+    const contactId = document.getElementById('contactId').value;
+    
+    const data = {
+        first_name: document.getElementById('contactFirstName').value,
+        last_name: document.getElementById('contactLastName').value,
+        email: document.getElementById('contactEmail').value,
+        phone: document.getElementById('contactPhone').value || null,
+        mobile: document.getElementById('contactMobile').value || null,
+        account_id: document.getElementById('contactAccount').value || null,
+        title: document.getElementById('contactTitle').value || null,
+        department: document.getElementById('contactDepartment').value || null,
+        lead_source: document.getElementById('contactSource').value || null,
+        description: document.getElementById('contactDescription').value || null
+    };
+    
+    try {
+        const url = contactId ? `/api/contacts/${contactId}` : '/api/contacts';
+        const method = contactId ? 'PUT' : 'POST';
+        
+        const res = await fetch(url, {
+            method: method,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+        
+        if (res.ok) {
+            showToast(contactId ? 'Contact updated!' : 'Contact created!', 'success');
+            closeModal('contactModal');
+            await loadContacts();
+        } else {
+            const err = await res.json();
+            showToast(err.error || 'Failed to save contact', 'error');
+        }
+    } catch (e) {
+        console.error('Error saving contact:', e);
+        showToast('Failed to save contact', 'error');
+    }
+}
+
+async function deleteContact(contactId) {
+    if (!confirm('Are you sure you want to delete this contact?')) return;
+    
+    try {
+        const res = await fetch(`/api/contacts/${contactId}`, { method: 'DELETE' });
+        if (res.ok) {
+            showToast('Contact deleted', 'success');
+            await loadContacts();
+        } else {
+            showToast('Failed to delete contact', 'error');
+        }
+    } catch (e) {
+        showToast('Failed to delete contact', 'error');
+    }
+}
+
+async function openContactDetails(contactId) {
+    currentContact = allContacts.find(c => c.id === contactId);
+    if (!currentContact) return;
+    
+    const name = `${currentContact.first_name || ''} ${currentContact.last_name || ''}`.trim();
+    const initials = getInitials(name);
+    const accountName = currentContact.account_name || (currentContact.account_id ? allAccounts.find(a => a.id === currentContact.account_id)?.name : '');
+    
+    document.getElementById('detailsContactName').textContent = name;
+    
+    // Load activities for this contact
+    let activities = [];
+    try {
+        const res = await fetch(`/api/activities?contact_id=${contactId}&limit=10`);
+        const data = await res.json();
+        activities = data.activities || [];
+    } catch (e) {
+        console.error('Failed to load activities');
+    }
+    
+    document.getElementById('contactDetailsContent').innerHTML = `
+        <div class="contact-profile">
+            <div class="contact-profile-avatar" style="background: ${getAvatarColor(name)}">${initials}</div>
+            <h2>${name}</h2>
+            <p>${currentContact.title || ''} ${accountName ? '@ ' + accountName : ''}</p>
+            <div class="contact-profile-actions">
+                <button class="btn btn-primary btn-sm" onclick="editContact('${currentContact.id}'); closeContactDetails();">
+                    <span class="material-icons-round">edit</span> Edit
+                </button>
+                <button class="btn btn-secondary btn-sm" onclick="openLogActivity('${currentContact.id}')">
+                    <span class="material-icons-round">note_add</span> Log Activity
+                </button>
+            </div>
+        </div>
+        
+        <div class="contact-detail-section">
+            <h4><span class="material-icons-round">contact_mail</span> Contact Information</h4>
+            ${currentContact.email ? `<div class="detail-row"><span class="material-icons-round">email</span><a href="mailto:${currentContact.email}">${currentContact.email}</a></div>` : ''}
+            ${currentContact.phone ? `<div class="detail-row"><span class="material-icons-round">phone</span><a href="tel:${currentContact.phone}">${currentContact.phone}</a></div>` : ''}
+            ${currentContact.mobile ? `<div class="detail-row"><span class="material-icons-round">smartphone</span><a href="tel:${currentContact.mobile}">${currentContact.mobile}</a></div>` : ''}
+        </div>
+        
+        ${currentContact.department || currentContact.lead_source ? `
+        <div class="contact-detail-section">
+            <h4><span class="material-icons-round">work</span> Professional Details</h4>
+            ${currentContact.department ? `<div class="detail-row"><span class="material-icons-round">folder</span>${currentContact.department}</div>` : ''}
+            ${currentContact.lead_source ? `<div class="detail-row"><span class="material-icons-round">source</span>${currentContact.lead_source}</div>` : ''}
+        </div>
+        ` : ''}
+        
+        <div class="contact-detail-section">
+            <h4><span class="material-icons-round">history</span> Activity Timeline</h4>
+        </div>
+        
+        <div class="activity-timeline">
+            ${activities.length ? activities.map(a => `
+                <div class="activity-item">
+                    <div class="activity-icon ${a.activity_type}">
+                        <span class="material-icons-round">${getActivityIcon(a.activity_type)}</span>
+                    </div>
+                    <div class="activity-content">
+                        <h5>${a.subject}</h5>
+                        <p>${a.description || ''}</p>
+                    </div>
+                    <div class="activity-time">${formatRelativeTime(a.activity_date || a.created_at)}</div>
+                </div>
+            `).join('') : `
+                <div class="empty-state">
+                    <p>No activities logged yet</p>
+                </div>
+            `}
+        </div>
+    `;
+    
+    document.getElementById('contactDetailsSidebar').classList.add('open');
+}
+
+function closeContactDetails() {
+    document.getElementById('contactDetailsSidebar').classList.remove('open');
+}
+
+function openLogActivity(contactId) {
+    document.getElementById('activityContactId').value = contactId;
+    document.getElementById('activityForm').reset();
+    openModal('logActivityModal');
+}
+
+async function saveActivity() {
+    const contactId = document.getElementById('activityContactId').value;
+    
+    const data = {
+        activity_type: document.getElementById('activityType').value,
+        subject: document.getElementById('activitySubject').value,
+        description: document.getElementById('activityDescription').value || null,
+        contact_id: contactId,
+        related_to_type: 'contact',
+        related_to_id: contactId
+    };
+    
+    try {
+        const res = await fetch('/api/activities', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+        
+        if (res.ok) {
+            showToast('Activity logged!', 'success');
+            closeModal('logActivityModal');
+            // Refresh contact details if sidebar is open
+            if (currentContact && currentContact.id === contactId) {
+                openContactDetails(contactId);
+            }
+        } else {
+            showToast('Failed to log activity', 'error');
+        }
+    } catch (e) {
+        showToast('Failed to log activity', 'error');
+    }
+}
+
+function viewAccount(accountId) {
+    window.location.href = `/accounts?id=${accountId}`;
+}
+
+// Helper functions
+function getInitials(name) {
+    return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+}
+
+function getActivityIcon(type) {
+    const icons = {
+        'call': 'phone',
+        'email': 'email',
+        'meeting': 'event',
+        'note': 'note',
+        'task': 'task_alt'
+    };
+    return icons[type] || 'event';
+}
+
+function formatRelativeTime(dateStr) {
+    if (!dateStr) return 'N/A';
+    const date = new Date(dateStr);
+    const now = new Date();
+    const diff = now - date;
+    const minutes = Math.floor(diff / 60000);
+    const hours = Math.floor(diff / 3600000);
+    const days = Math.floor(diff / 86400000);
+    
+    if (minutes < 1) return 'Just now';
+    if (minutes < 60) return `${minutes}m ago`;
+    if (hours < 24) return `${hours}h ago`;
+    if (days < 7) return `${days}d ago`;
+    return date.toLocaleDateString();
+}
+</script>
+{% endblock %}
                 </div>
             </td>
             <td>${c.company || '-'}</td>
